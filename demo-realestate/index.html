@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prestige Homes — Premium Real Estate | Hyderabad</title>
+  <meta name="description" content="Find your dream home in Hyderabad with Prestige Homes.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared-assets/nexus.css">
+  <style>
+    :root{--client-accent:#00b4d8;--client-accent-2:#0077b6;}
+    .hero{min-height:100vh;display:flex;align-items:center;background:radial-gradient(ellipse at 70% 40%,rgba(0,180,216,0.12) 0%,var(--nexus-dark) 65%);padding-top:5rem;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;background:rgba(10,10,15,0.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--nexus-border);}
+    .logo{font-weight:800;font-size:1.3rem;background:linear-gradient(135deg,var(--client-accent),var(--client-accent-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .property-card{position:relative;overflow:hidden;}
+    .property-card::before{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,0.8));border-radius:16px;pointer-events:none;}
+    .prop-badge{position:absolute;top:1rem;left:1rem;z-index:1;}
+    .prop-info{position:absolute;bottom:1.5rem;left:1.5rem;right:1.5rem;z-index:1;}
+    .prop-emoji{font-size:6rem;text-align:center;padding:2rem 0;display:block;}
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">🏠 Prestige Homes</div>
+    <div style="display:flex;gap:1rem;">
+      <a href="#listings" style="color:var(--nexus-muted);text-decoration:none;font-size:0.9rem;">Listings</a>
+      <a href="#contact" style="color:var(--nexus-muted);text-decoration:none;font-size:0.9rem;">Contact</a>
+    </div>
+  </nav>
+  <section class="hero">
+    <div class="nexus-container">
+      <div style="max-width:620px;">
+        <span class="nexus-badge nexus-badge-gold" style="margin-bottom:1.5rem;display:inline-block;">🏆 #1 Rated Agency · Hyderabad</span>
+        <h1 class="nexus-h1" style="margin-bottom:1.5rem;">Find Your Dream Home in <span style="background:linear-gradient(135deg,var(--client-accent),var(--client-accent-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Hyderabad</span></h1>
+        <p style="color:var(--nexus-muted);font-size:1.1rem;margin-bottom:2rem;">500+ premium listings in HITEC City, Gachibowli & Banjara Hills. Zero brokerage on select properties.</p>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+          <a href="#listings" class="nexus-btn nexus-btn-primary" style="background:linear-gradient(135deg,var(--client-accent),var(--client-accent-2));">Browse Listings →</a>
+          <a href="https://wa.me/919999999999" class="nexus-btn nexus-whatsapp">💬 Free Consultation</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="nexus-section" id="listings">
+    <div class="nexus-container">
+      <h2 class="nexus-h2" style="text-align:center;margin-bottom:3rem;">Featured Properties</h2>
+      <div class="nexus-grid-3">
+        <div class="nexus-card property-card" data-nexus-reveal>
+          <span class="nexus-badge nexus-badge-accent prop-badge">New Launch</span>
+          <span class="prop-emoji">🏢</span>
+          <div class="prop-info">
+            <h3 class="nexus-h3" style="color:#fff;">3BHK in HITEC City</h3>
+            <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;">1,450 sqft · 12th floor · Furnished</p>
+            <p style="color:var(--client-accent);font-weight:800;font-size:1.2rem;margin-top:0.5rem;">₹85L onwards</p>
+          </div>
+        </div>
+        <div class="nexus-card property-card" data-nexus-reveal>
+          <span class="nexus-badge nexus-badge-gold prop-badge">Premium</span>
+          <span class="prop-emoji">🏘️</span>
+          <div class="prop-info">
+            <h3 class="nexus-h3" style="color:#fff;">Villa in Banjara Hills</h3>
+            <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;">4,200 sqft · Private pool · 4BHK</p>
+            <p style="color:var(--client-accent);font-weight:800;font-size:1.2rem;margin-top:0.5rem;">₹3.2Cr onwards</p>
+          </div>
+        </div>
+        <div class="nexus-card property-card" data-nexus-reveal>
+          <span class="nexus-badge nexus-badge-accent prop-badge">Ready to Move</span>
+          <span class="prop-emoji">🏠</span>
+          <div class="prop-info">
+            <h3 class="nexus-h3" style="color:#fff;">2BHK in Gachibowli</h3>
+            <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;">980 sqft · Near metro · Semi-furnished</p>
+            <p style="color:var(--client-accent);font-weight:800;font-size:1.2rem;margin-top:0.5rem;">₹52L onwards</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="nexus-section" id="contact">
+    <div class="nexus-container">
+      <div class="nexus-card" style="max-width:520px;margin:0 auto;text-align:center;border:1px solid rgba(0,180,216,0.2);">
+        <h2 class="nexus-h2" style="margin-bottom:0.5rem;">Schedule a Site Visit</h2>
+        <p style="color:var(--nexus-muted);margin-bottom:1.5rem;">Free consultation. No obligation. Our agent comes to you.</p>
+        <form id="realestateForm" data-whatsapp="919999999999">
+          <div style="display:grid;gap:1rem;">
+            <input class="nexus-input" type="text" name="name" placeholder="Full Name" required>
+            <input class="nexus-input" type="tel" name="phone" placeholder="Phone Number" required>
+            <select class="nexus-input" name="budget" style="background:rgba(255,255,255,0.05);cursor:pointer;">
+              <option>Select Budget Range</option>
+              <option>Under ₹50L</option><option>₹50L – ₹1Cr</option><option>₹1Cr – ₹3Cr</option><option>₹3Cr+</option>
+            </select>
+            <button type="submit" class="nexus-btn nexus-btn-primary" style="background:linear-gradient(135deg,var(--client-accent),var(--client-accent-2));justify-content:center;">Schedule Visit 🏠</button>
+          </div>
+        </form>
+        <p style="margin-top:1rem;color:var(--nexus-muted);font-size:0.85rem;">📍 HITEC City Office · 10am–7pm Mon–Sat</p>
+      </div>
+    </div>
+  </section>
+  <script src="../shared-assets/nexus.js"></script>
+  <script>nexusInitForm('realestateForm','');</script>
+</body>
+</html>

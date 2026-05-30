@@ -1,0 +1,4 @@
+# This folder holds actual client deployments.
+# Each subfolder = one Cloudflare Pages project.
+# Use: clients/<client-slug>/index.html
+# Run the Nexus pipeline to auto-generate and commit new client folders.

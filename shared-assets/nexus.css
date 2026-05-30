@@ -1,0 +1,106 @@
+/* ==============================================
+   NEXUS WEB SYSTEMS — Global Design System
+   Version: 2.0 | Target: Indian SMB Market
+   ============================================== */
+
+:root {
+  /* Brand Colors */
+  --nexus-dark:       #0a0a0f;
+  --nexus-surface:    #12121a;
+  --nexus-card:       #1a1a28;
+  --nexus-border:     rgba(255,255,255,0.08);
+  --nexus-accent:     #6c63ff;
+  --nexus-accent-2:   #ff6584;
+  --nexus-gold:       #f7c948;
+  --nexus-text:       #e8e8f0;
+  --nexus-muted:      #8888aa;
+
+  /* Typography */
+  --font-display:     'Inter', 'Segoe UI', sans-serif;
+  --font-body:        'Inter', system-ui, sans-serif;
+
+  /* Spacing scale */
+  --s1: 0.25rem;
+  --s2: 0.5rem;
+  --s3: 1rem;
+  --s4: 1.5rem;
+  --s5: 2rem;
+  --s6: 3rem;
+  --s7: 4rem;
+  --s8: 6rem;
+
+  /* Shadows */
+  --shadow-card: 0 4px 32px rgba(108,99,255,0.15);
+  --shadow-glow: 0 0 60px rgba(108,99,255,0.3);
+
+  /* Transitions */
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--nexus-dark);
+  color: var(--nexus-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Utility Classes ── */
+.nexus-container { max-width: 1200px; margin: 0 auto; padding: 0 var(--s4); }
+.nexus-section   { padding: var(--s8) 0; }
+.nexus-card      { background: var(--nexus-card); border: 1px solid var(--nexus-border); border-radius: 16px; padding: var(--s5); transition: transform var(--transition), box-shadow var(--transition); }
+.nexus-card:hover{ transform: translateY(-4px); box-shadow: var(--shadow-card); }
+
+/* ── Typography ── */
+.nexus-h1 { font-size: clamp(2rem, 5vw, 4rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+.nexus-h2 { font-size: clamp(1.5rem, 3vw, 2.5rem); font-weight: 700; }
+.nexus-h3 { font-size: clamp(1.1rem, 2vw, 1.5rem); font-weight: 600; }
+.nexus-gradient-text { background: linear-gradient(135deg, var(--nexus-accent), var(--nexus-accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+/* ── Buttons ── */
+.nexus-btn { display: inline-flex; align-items: center; gap: var(--s2); padding: 0.75rem 2rem; border-radius: 50px; font-weight: 600; font-size: 1rem; cursor: pointer; text-decoration: none; transition: all var(--transition); border: none; }
+.nexus-btn-primary { background: linear-gradient(135deg, var(--nexus-accent), #8b5cf6); color: #fff; box-shadow: 0 4px 20px rgba(108,99,255,0.4); }
+.nexus-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(108,99,255,0.5); }
+.nexus-btn-outline { background: transparent; color: var(--nexus-text); border: 1px solid var(--nexus-border); }
+.nexus-btn-outline:hover { border-color: var(--nexus-accent); color: var(--nexus-accent); }
+
+/* ── Badge ── */
+.nexus-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+.nexus-badge-accent { background: rgba(108,99,255,0.15); color: var(--nexus-accent); border: 1px solid rgba(108,99,255,0.3); }
+.nexus-badge-gold   { background: rgba(247,201,72,0.15); color: var(--nexus-gold); border: 1px solid rgba(247,201,72,0.3); }
+
+/* ── Forms ── */
+.nexus-input { width: 100%; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border: 1px solid var(--nexus-border); border-radius: 10px; color: var(--nexus-text); font-family: var(--font-body); font-size: 1rem; transition: border-color var(--transition); outline: none; }
+.nexus-input:focus { border-color: var(--nexus-accent); }
+.nexus-input::placeholder { color: var(--nexus-muted); }
+
+/* ── Responsive grid ── */
+.nexus-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--s5); }
+.nexus-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--s4); }
+
+/* ── Animations ── */
+@keyframes nexus-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes nexus-pulse-glow { 0%,100%{opacity:0.6} 50%{opacity:1} }
+@keyframes nexus-fade-up { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+.nexus-animate-float     { animation: nexus-float 4s ease-in-out infinite; }
+.nexus-animate-pulse     { animation: nexus-pulse-glow 2s ease-in-out infinite; }
+.nexus-animate-fade-up   { animation: nexus-fade-up 0.6s ease forwards; }
+
+/* ── Three.js canvas wrapper ── */
+.nexus-canvas-wrap { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.nexus-canvas-wrap canvas { display: block; width: 100% !important; height: 100% !important; }
+.nexus-hero-content { position: relative; z-index: 1; }
+
+/* ── WhatsApp CTA (India-specific) ── */
+.nexus-whatsapp { background: #25D366; color: #fff; }
+.nexus-whatsapp:hover { background: #128C7E; }
+
+/* ── Mobile fixes ── */
+@media (max-width: 768px) {
+  .nexus-section { padding: var(--s6) 0; }
+  .nexus-hide-mobile { display: none !important; }
+}

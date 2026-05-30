@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spice Garden — Fine Dining | Mumbai</title>
+  <meta name="description" content="Mumbai's most immersive dining experience. Reserve your table tonight.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared-assets/nexus.css">
+  <style>
+    :root { --client-accent: #e67e22; --client-accent-2: #c0392b; }
+    .hero { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; background: radial-gradient(ellipse at 60% 50%, rgba(230,126,34,0.15) 0%, var(--nexus-dark) 70%); }
+    #bgCanvas { position: absolute; inset: 0; z-index: 0; }
+    .hero-content { position: relative; z-index: 1; max-width: 680px; }
+    .floating-dish { position: absolute; right: 8%; top: 50%; transform: translateY(-50%); font-size: 12rem; animation: nexus-float 5s ease-in-out infinite; z-index: 1; filter: drop-shadow(0 0 60px rgba(230,126,34,0.4)); }
+    .stats-bar { display: flex; gap: var(--s5); margin-top: var(--s5); flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat-num { font-size: 2rem; font-weight: 800; color: var(--client-accent); }
+    .stat-label { font-size: 0.8rem; color: var(--nexus-muted); }
+    .menu-card { border-left: 3px solid var(--client-accent); }
+    .price { font-size: 1.3rem; font-weight: 700; color: var(--client-accent); }
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; background: rgba(10,10,15,0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--nexus-border); }
+    .logo { font-size: 1.3rem; font-weight: 800; background: linear-gradient(135deg, var(--client-accent), var(--client-accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .nav-links a { color: var(--nexus-muted); text-decoration: none; margin-left: 2rem; transition: color 0.3s; font-size: 0.9rem; }
+    .nav-links a:hover { color: var(--nexus-text); }
+    .contact-section { background: linear-gradient(135deg, rgba(230,126,34,0.1), rgba(192,57,43,0.05)); border-radius: 24px; border: 1px solid rgba(230,126,34,0.2); }
+    @media(max-width:768px){.floating-dish{font-size:5rem;top:10%;right:5%;transform:none;opacity:0.4;}}
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <nav>
+    <div class="logo">🌶 Spice Garden</div>
+    <div class="nav-links">
+      <a href="#menu">Menu</a>
+      <a href="#about">About</a>
+      <a href="#reserve">Reserve</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <canvas id="bgCanvas"></canvas>
+    <div class="floating-dish nexus-animate-float">🍛</div>
+    <div class="nexus-container hero-content" style="padding-top:5rem;">
+      <span class="nexus-badge nexus-badge-gold" style="margin-bottom:1.5rem;display:inline-block;">⭐ 4.7 Rating · 1,200+ Reviews</span>
+      <h1 class="nexus-h1" style="margin-bottom:1.5rem;">Mumbai's Most <span class="nexus-gradient-text" style="--nexus-accent:var(--client-accent);--nexus-accent-2:var(--client-accent-2);">Unforgettable</span> Dining Experience</h1>
+      <p style="font-size:1.2rem;color:var(--nexus-muted);margin-bottom:2rem;max-width:500px;">Award-winning North Indian cuisine crafted with 30-year-old family recipes. Rooftop seating. Live music every weekend.</p>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+        <a href="#reserve" class="nexus-btn nexus-btn-primary" style="background:linear-gradient(135deg,var(--client-accent),var(--client-accent-2));">Reserve a Table →</a>
+        <a href="https://wa.me/919999999999" class="nexus-btn nexus-btn-outline nexus-whatsapp">💬 WhatsApp Us</a>
+      </div>
+      <div class="stats-bar">
+        <div class="stat"><div class="stat-num">30+</div><div class="stat-label">Years Legacy</div></div>
+        <div class="stat"><div class="stat-num">200+</div><div class="stat-label">Dishes</div></div>
+        <div class="stat"><div class="stat-num">50K+</div><div class="stat-label">Happy Guests</div></div>
+        <div class="stat"><div class="stat-num">4.7★</div><div class="stat-label">Google Rating</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU HIGHLIGHTS -->
+  <section class="nexus-section" id="menu">
+    <div class="nexus-container">
+      <div style="text-align:center;margin-bottom:3rem;">
+        <span class="nexus-badge nexus-badge-accent">Our Specialties</span>
+        <h2 class="nexus-h2" style="margin-top:1rem;">Chef's Recommendations</h2>
+      </div>
+      <div class="nexus-grid-3">
+        <div class="nexus-card menu-card" data-nexus-reveal>
+          <div style="font-size:3rem;margin-bottom:1rem;">🍖</div>
+          <h3 class="nexus-h3">Signature Raan Biryani</h3>
+          <p style="color:var(--nexus-muted);margin:0.5rem 0 1rem;">Slow-cooked leg of lamb on aged basmati, saffron & 22 spices. Serves 2.</p>
+          <span class="price">₹1,299</span>
+        </div>
+        <div class="nexus-card menu-card" data-nexus-reveal>
+          <div style="font-size:3rem;margin-bottom:1rem;">🧆</div>
+          <h3 class="nexus-h3">Dal Makhani (48hr)</h3>
+          <p style="color:var(--nexus-muted);margin:0.5rem 0 1rem;">Black lentils slow-simmered for 48 hours. Our most-ordered dish since 1994.</p>
+          <span class="price">₹499</span>
+        </div>
+        <div class="nexus-card menu-card" data-nexus-reveal>
+          <div style="font-size:3rem;margin-bottom:1rem;">🍰</div>
+          <h3 class="nexus-h3">Gulab Jamun Cheesecake</h3>
+          <p style="color:var(--nexus-muted);margin:0.5rem 0 1rem;">Our award-winning fusion dessert. Featured in Times Food Guide 2024.</p>
+          <span class="price">₹349</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT / RESERVE -->
+  <section class="nexus-section" id="reserve">
+    <div class="nexus-container">
+      <div class="contact-section nexus-card" style="max-width:600px;margin:0 auto;text-align:center;">
+        <h2 class="nexus-h2" style="margin-bottom:0.5rem;">Reserve Your Table</h2>
+        <p style="color:var(--nexus-muted);margin-bottom:2rem;">Book online or call us. We fill up fast on weekends.</p>
+        <form id="reserveForm" data-whatsapp="919999999999">
+          <div style="display:grid;gap:1rem;">
+            <input class="nexus-input" type="text" name="name" placeholder="Your Name *" required>
+            <input class="nexus-input" type="tel" name="phone" placeholder="Phone Number *" required>
+            <input class="nexus-input" type="text" name="date" placeholder="Preferred Date & Time" onfocus="this.type='datetime-local'">
+            <select class="nexus-input" name="guests" style="background:rgba(255,255,255,0.05);cursor:pointer;">
+              <option value="">Number of Guests</option>
+              <option>1-2</option><option>3-4</option><option>5-8</option><option>9+</option>
+            </select>
+            <button type="submit" class="nexus-btn nexus-btn-primary" style="background:linear-gradient(135deg,var(--client-accent),var(--client-accent-2));justify-content:center;">Confirm Reservation 🍽️</button>
+          </div>
+        </form>
+        <p style="margin-top:1.5rem;color:var(--nexus-muted);font-size:0.85rem;">📍 Bandra West, Mumbai &nbsp;·&nbsp; 📞 +91 99999 99999 &nbsp;·&nbsp; Open: 12pm–11pm</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Three.js Particle Background -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    const canvas = document.getElementById('bgCanvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera.position.z = 5;
+    const geo = new THREE.BufferGeometry();
+    const N = 600; const pos = new Float32Array(N*3);
+    for(let i=0;i<N*3;i++) pos[i]=(Math.random()-0.5)*20;
+    geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    const mat = new THREE.PointsMaterial({ color: 0xe67e22, size: 0.04, transparent: true, opacity: 0.6 });
+    scene.add(new THREE.Points(geo, mat));
+    function animate(){requestAnimationFrame(animate);scene.rotation.y+=0.0005;scene.rotation.x+=0.0002;renderer.render(scene,camera);}
+    animate();
+    window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});
+  </script>
+  <script src="../shared-assets/nexus.js"></script>
+  <script>nexusInitForm('reserveForm', '');</script>
+</body>
+</html>

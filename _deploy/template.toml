@@ -1,0 +1,34 @@
+# =======================================================
+# Nexus Web Systems — Cloudflare Pages Deploy Config
+# USAGE: Copy this file, rename to <client-slug>.toml
+# Connect via Cloudflare Pages dashboard:
+#   Repo: nakad-pixel/nexus-client-pages
+#   Build root dir: clients/<client-slug>/
+#   Build output dir: . (no build step needed)
+# =======================================================
+
+name = "nexus-CLIENT_SLUG"       # e.g. nexus-spice-garden
+compatibility_date = "2025-01-01"
+
+[build]
+  command = ""                   # No build step — pure HTML
+  root_dir = "clients/CLIENT_SLUG"  # Change this per client
+  output_dir = "."              # Serve from root of that folder
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/shared-assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, immutable"
