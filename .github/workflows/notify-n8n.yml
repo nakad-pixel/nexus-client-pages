@@ -1,0 +1,46 @@
+name: Notify n8n on Client Push
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'clients/**'
+      - 'demo-restaurant/**'
+      - 'demo-salon/**'
+      - 'demo-realestate/**'
+
+jobs:
+  notify-n8n:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed client folder
+        id: detect
+        run: |
+          CHANGED=$(git diff --name-only HEAD~1 HEAD | grep '^clients/' | head -1 | cut -d'/' -f2)
+          if [ -z "$CHANGED" ]; then
+            # fallback: check demo folders
+            CHANGED=$(git diff --name-only HEAD~1 HEAD | grep -E '^(demo-restaurant|demo-salon|demo-realestate)/' | head -1 | cut -d'/' -f1)
+          fi
+          echo "client_slug=$CHANGED" >> $GITHUB_OUTPUT
+          echo "Detected changed client: $CHANGED"
+
+      - name: Ping n8n webhook
+        if: steps.detect.outputs.client_slug != ''
+        run: |
+          curl -s -X POST "${{ secrets.N8N_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "event": "client_pushed",
+              "client_slug": "${{ steps.detect.outputs.client_slug }}",
+              "repo": "nakad-pixel/nexus-client-pages",
+              "branch": "main",
+              "commit_sha": "${{ github.sha }}",
+              "pushed_at": "${{ github.event.head_commit.timestamp }}",
+              "committer": "${{ github.event.head_commit.author.name }}"
+            }'
+          echo "n8n webhook triggered for: ${{ steps.detect.outputs.client_slug }}"
