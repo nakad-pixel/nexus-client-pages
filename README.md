@@ -2,62 +2,106 @@
 
 > **"We don't sell websites; we sell the digital future of your brand."**
 
-## 📁 Structure
+---
+
+## 🏗️ How The Full System Works (End-to-End)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  STEP 1 — CLAUDE BUILDS & DEPLOYS                          │
+│                                                             │
+│  Claude generates clients/<slug>/index.html                 │
+│  Claude generates clients/<slug>/netlify.toml               │
+│  Claude commits → nakad-pixel/nexus-client-pages (GitHub)   │
+│  Claude calls Netlify MCP → creates nexus-<slug>.netlify.app│
+│  Claude appends to Google Sheet → Lead Intelligence tab     │
+│    columns: Business Name, Niche, City, Rating...           │
+│    + netlify_url = https://nexus-<slug>.netlify.app          │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ▼ (new row with netlify_url triggers)
+┌─────────────────────────────────────────────────────────────┐
+│  STEP 2 — n8n SALE PIPELINE FIRES (every minute poll)      │
+│                                                             │
+│  Google Sheets Trigger detects new row with netlify_url     │
+│  → Groq Scout Agent  — analyses business, finds pain points │
+│  → Groq Audit Agent  — generates Before/After bullets       │
+│  → Groq Closer Agent — writes personalized pitch email      │
+│  → Gmail Draft saved (never auto-sent)                      │
+│  → Pipeline Overview sheet updated with pitched status      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📁 Repo Structure
 
 ```
 nexus-client-pages/
-├── shared-assets/          ← Global CSS, JS, branding tokens
-│   ├── nexus.css
-│   ├── nexus.js
-│   └── og-default.png
-├── demo-restaurant/        ← Demo: Restaurant (Three.js)
-│   └── index.html
-├── demo-salon/             ← Demo: Salon/Spa
-│   └── index.html
-├── demo-realestate/        ← Demo: Real Estate
-│   └── index.html
-├── clients/                ← LIVE client sites (each = one Netlify site)
-│   └── <client-slug>/
-│       ├── index.html
-│       └── netlify.toml        ← Per-client Netlify config (auto-generated)
-├── .github/workflows/
-│   └── notify-n8n.yml      ← On push: pings n8n webhook with changed client slug
-└── README.md
+├── shared-assets/
+│   ├── nexus.css          ← Global design system
+│   └── nexus.js           ← Form handler, WhatsApp fallback
+├── demo-restaurant/
+│   ├── index.html         ← Live: nexus-demo-restaurant.netlify.app
+│   └── netlify.toml
+├── demo-salon/
+│   ├── index.html         ← Live: nexus-demo-salon.netlify.app
+│   └── netlify.toml
+├── demo-realestate/
+│   ├── index.html         ← Live: nexus-demo-realestate.netlify.app
+│   └── netlify.toml
+└── clients/
+    └── <client-slug>/     ← Auto-generated per client
+        ├── index.html     ← Three.js landing page
+        └── netlify.toml   ← Netlify build config
 ```
 
-## 🚀 Deployment Architecture
+---
 
-```
-Claude writes client HTML → Composio commits to GitHub
-         ↓
-GitHub Push → GitHub Actions detects changed client folder
-         ↓
-Webhook POST to n8n (client_slug, repo, timestamp)
-         ↓
-n8n Workflow:
-  1. Netlify API: Check if site exists for client_slug
-  2. If NOT: Create Netlify site linked to this repo + client subfolder
-  3. If YES: Trigger redeploy via build hook
-  4. Wait for deployCreated event (Netlify Trigger)
-  5. Log to Google Sheets: client_name | url | niche | date | status=new
-  6. Groq AI Pipeline: Scout → Audit → Prototype link → Pitch
-  7. Gmail: Save pitch as draft
-```
+## ⚙️ One-Time Setup (Manual, Do Once)
 
-## 🆕 Adding a New Client (Full Auto Flow)
+### 1. Connect GitHub Repo to Netlify (per site)
+For each `demo-*` or `clients/<slug>` folder:
+- Netlify Dashboard → Add new site → Import from Git
+- Repo: `nakad-pixel/nexus-client-pages`
+- Base directory: `demo-restaurant` (or `clients/<slug>`)
+- Build command: *(blank)*
+- Publish directory: `.`
+- Site name: `nexus-demo-restaurant`
 
-Say to Claude/Anurag: **"Build a demo for [Business Name] in [Niche]"**
+> **After first setup:** Every `git push` to `main` auto-redeploys that site. Netlify detects the netlify.toml in the subfolder automatically.
 
-Claude will:
-1. Generate `clients/<client-slug>/index.html` (Three.js, brand colors, contact form)
-2. Generate `clients/<client-slug>/netlify.toml` (publish dir = `.`)
-3. Commit both files via GitHub API (Composio)
-4. GitHub Actions fires → pings n8n webhook
-5. n8n creates/updates Netlify site automatically
-6. Live URL: `https://<client-slug>.netlify.app`
-7. Google Sheets logs the deploy
-8. n8n fires Nexus sale pipeline
-9. Gmail draft pitch lands in your inbox
+### 2. n8n Workflow Credentials (Settings → Credentials)
+| Credential Name | Type | Value |
+|---|---|---|
+| `Google Sheets OAuth` | googleSheetsTriggerOAuth2Api | OAuth with anurag2026jaiswar@gmail.com |
+| `Google Sheets OAuth` | googleSheetsOAuth2Api | Same account |
+| `Groq API` | httpHeaderAuth | Header: Authorization / Value: Bearer gsk_... |
+| `Gmail OAuth` | gmailOAuth2 | OAuth with anurag2026jaiswar@gmail.com |
+
+### 3. Activate the n8n Workflow
+- Open: [Nexus Sale Pipeline v3](https://wolfy1223-hugging8n.hf.space/workflow/fD8eRVf6RetejZjO)
+- Add all credentials above
+- Toggle: **Active** (top right)
+
+---
+
+## 🚀 Adding a New Client (The Anurag Flow)
+
+Say to Claude: **"Anurag, build a demo for [Business Name] in [Niche]"**
+
+Claude will automatically:
+1. ✅ Generate `clients/<client-slug>/index.html` (Three.js, brand colors, WhatsApp CTA)
+2. ✅ Generate `clients/<client-slug>/netlify.toml`
+3. ✅ Commit both to this repo via GitHub API
+4. ✅ Create a new Netlify site via Netlify MCP → `https://nexus-<slug>.netlify.app`
+5. ✅ Append a row to Google Sheet **Lead Intelligence** with the `netlify_url`
+6. 🤖 n8n auto-detects the new row (polls every minute)
+7. 🤖 Groq runs Scout → Audit → Closer pipeline
+8. 🤖 Gmail draft saved with personalized pitch
+9. 📬 You review & send from Gmail when ready
+
+---
 
 ## 💰 Pricing Tiers (INR)
 
@@ -67,28 +111,13 @@ Claude will:
 | Three.js Experience | ₹34,999 | Interactive 3D, High conversion, Custom branding |
 | Full Business OS | ₹74,999+ | Booking, Inventory, Premium 3D portfolio |
 
-## ⚙️ One-Time Setup
+---
 
-### 1. Connect Netlify to GitHub
-- Log into [app.netlify.com](https://app.netlify.com)
-- No manual site creation needed — n8n handles it via API
-- Save your **Netlify Personal Access Token** as a GitHub Secret: `NETLIFY_AUTH_TOKEN`
+## 🔗 Key Links
 
-### 2. Set GitHub Secrets
-```
-N8N_WEBHOOK_URL    → Your n8n webhook URL (from the Nexus Pipeline workflow)
-NETLIFY_AUTH_TOKEN → Your Netlify PAT (Settings → Applications → Personal access tokens)
-```
-
-### 3. Google Sheet Setup
-Create a sheet named **Nexus Deployments** with columns:
-`client_name | netlify_url | niche | deploy_date | tier | status | pitch_sent`
-
-### 4. n8n Workflow
-Import the **Nexus Sale Pipeline** workflow. It handles everything.
-
-## 🤖 Pipeline Agents
-- **Scout Agent** — Finds 3.5★+ rated Indian businesses in niche
-- **Audit Agent** — Identifies 3 technical/design flaws costing them money
-- **Architect Agent** — Links to the live Netlify prototype (Gift Strategy)
-- **Closer Agent** — Groq AI drafts personalized Gmail pitch
+| Resource | URL |
+|----------|-----|
+| GitHub Repo | https://github.com/nakad-pixel/nexus-client-pages |
+| Google Sheet CRM | https://docs.google.com/spreadsheets/d/1rZxpKhfkzUtglL_jexKdByVN92mpkdr9KpXstrgqGF0 |
+| n8n Workflow | https://wolfy1223-hugging8n.hf.space/workflow/fD8eRVf6RetejZjO |
+| Demo Restaurant | https://nexus-demo-restaurant.netlify.app |
