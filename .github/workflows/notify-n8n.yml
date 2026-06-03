@@ -1,5 +1,6 @@
-name: Notify n8n on Client Push
+name: Auto-Deploy → Notify n8n Sale Pipeline
 
+# Fires on every push to main that touches a client or demo folder
 on:
   push:
     branches: [main]
@@ -16,31 +17,92 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 2  # Need HEAD~1 to diff against
 
       - name: Detect changed client folder
         id: detect
         run: |
-          CHANGED=$(git diff --name-only HEAD~1 HEAD | grep '^clients/' | head -1 | cut -d'/' -f2)
-          if [ -z "$CHANGED" ]; then
-            # fallback: check demo folders
-            CHANGED=$(git diff --name-only HEAD~1 HEAD | grep -E '^(demo-restaurant|demo-salon|demo-realestate)/' | head -1 | cut -d'/' -f1)
-          fi
-          echo "client_slug=$CHANGED" >> $GITHUB_OUTPUT
-          echo "Detected changed client: $CHANGED"
+          # Get the first changed path under clients/ or demo-*/
+          CHANGED_PATH=$(git diff --name-only HEAD~1 HEAD \
+            | grep -E '^(clients/|demo-restaurant/|demo-salon/|demo-realestate/)' \
+            | head -1)
 
-      - name: Ping n8n webhook
+          if [ -z "$CHANGED_PATH" ]; then
+            echo "No client folder changed — skipping."
+            echo "client_slug=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Extract the slug: first path segment after clients/ OR the demo folder name
+          if echo "$CHANGED_PATH" | grep -q '^clients/'; then
+            CLIENT_SLUG=$(echo "$CHANGED_PATH" | cut -d'/' -f2)
+          else
+            # demo-restaurant → demo-restaurant
+            CLIENT_SLUG=$(echo "$CHANGED_PATH" | cut -d'/' -f1)
+          fi
+
+          # Skip template placeholder
+          if [ "$CLIENT_SLUG" = "_template" ]; then
+            echo "Template folder — skipping."
+            echo "client_slug=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "client_slug=$CLIENT_SLUG" >> $GITHUB_OUTPUT
+          echo "Detected client: $CLIENT_SLUG"
+
+      - name: Derive Netlify URL and niche
+        id: enrich
         if: steps.detect.outputs.client_slug != ''
         run: |
-          curl -s -X POST "${{ secrets.N8N_WEBHOOK_URL }}" \
+          SLUG="${{ steps.detect.outputs.client_slug }}"
+
+          # Netlify site name: nexus-<slug> (lowercase, hyphens only)
+          NETLIFY_SITE="nexus-${SLUG}"
+          NETLIFY_URL="https://${NETLIFY_SITE}.netlify.app"
+          echo "netlify_url=$NETLIFY_URL" >> $GITHUB_OUTPUT
+
+          # Heuristic niche detection from slug keywords
+          NICHE="business"
+          case "$SLUG" in
+            *restaurant*|*food*|*cafe*|*dhaba*|*biryani*|*hotel*)
+              NICHE="restaurant" ;;
+            *salon*|*spa*|*beauty*|*hair*|*nail*|*glamour*)
+              NICHE="salon" ;;
+            *real*estate*|*property*|*homes*|*realty*|*flat*|*villa*)
+              NICHE="real-estate" ;;
+            *gym*|*fitness*|*yoga*|*wellness*)
+              NICHE="fitness" ;;
+            *doctor*|*clinic*|*dental*|*health*|*hospital*)
+              NICHE="healthcare" ;;
+            *school*|*college*|*academy*|*coaching*|*tutor*)
+              NICHE="education" ;;
+            *shop*|*store*|*boutique*|*fashion*|*cloth*)
+              NICHE="retail" ;;
+          esac
+          echo "niche=$NICHE" >> $GITHUB_OUTPUT
+          echo "Netlify URL: $NETLIFY_URL | Niche: $NICHE"
+
+      - name: Ping n8n — trigger sale pipeline
+        if: steps.detect.outputs.client_slug != ''
+        run: |
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "${{ secrets.N8N_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d '{
-              "event": "client_pushed",
-              "client_slug": "${{ steps.detect.outputs.client_slug }}",
-              "repo": "nakad-pixel/nexus-client-pages",
-              "branch": "main",
-              "commit_sha": "${{ github.sha }}",
-              "pushed_at": "${{ github.event.head_commit.timestamp }}",
-              "committer": "${{ github.event.head_commit.author.name }}"
-            }'
-          echo "n8n webhook triggered for: ${{ steps.detect.outputs.client_slug }}"
+            -d "$(cat <<EOF
+          {
+            "event": "client_deployed",
+            "client_slug": "${{ steps.detect.outputs.client_slug }}",
+            "netlify_url": "${{ steps.enrich.outputs.netlify_url }}",
+            "niche": "${{ steps.enrich.outputs.niche }}",
+            "repo": "${{ github.repository }}",
+            "commit_sha": "${{ github.sha }}",
+            "pushed_at": "${{ github.event.head_commit.timestamp }}",
+            "committer": "${{ github.event.head_commit.author.name }}"
+          }
+          EOF
+          )")
+          echo "n8n responded with HTTP $HTTP_STATUS"
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "Warning: n8n webhook returned $HTTP_STATUS" >&2
+          fi
