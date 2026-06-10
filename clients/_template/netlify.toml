@@ -1,24 +1,20 @@
-# =============================================================
-# Nexus Web Systems — Per-Client Netlify Config TEMPLATE
-# -------
-# USAGE: This file is AUTO-GENERATED per client.
-# Each clients/<client-slug>/netlify.toml uses publish = "."
-# meaning Netlify serves that subfolder as a standalone site.
-# =============================================================
+# AUTO-GENERATED per client by Nexus pipeline
+# CLIENT_SLUG is replaced with actual slug at generation time
 
 [build]
-  publish = "."
+  base    = "clients/CLIENT_SLUG"
   command = ""
+  publish = "."
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from   = "/*"
+  to     = "/index.html"
   status = 200
 
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
+    X-Frame-Options        = "DENY"
     X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Cache-Control = "public, max-age=3600"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Cache-Control          = "public, max-age=3600"

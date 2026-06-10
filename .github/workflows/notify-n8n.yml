@@ -1,6 +1,5 @@
 name: Auto-Deploy → Notify n8n Sale Pipeline
 
-# Fires on every push to main that touches a client or demo folder
 on:
   push:
     branches: [main]
@@ -27,7 +26,6 @@ jobs:
             | head -1)
 
           if [ -z "$CHANGED_PATH" ]; then
-            echo "No client folder changed — skipping."
             echo "client_slug=" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -39,13 +37,11 @@ jobs:
           fi
 
           if [ "$CLIENT_SLUG" = "_template" ]; then
-            echo "Template folder — skipping."
             echo "client_slug=" >> $GITHUB_OUTPUT
             exit 0
           fi
 
           echo "client_slug=$CLIENT_SLUG" >> $GITHUB_OUTPUT
-          echo "Detected client: $CLIENT_SLUG"
 
       - name: Derive Netlify URL and niche
         id: enrich
@@ -68,81 +64,63 @@ jobs:
             *shop*|*store*|*boutique*|*fashion*|*cloth*)           NICHE="retail" ;;
           esac
           echo "niche=$NICHE" >> $GITHUB_OUTPUT
-          echo "Netlify URL: $NETLIFY_URL | Niche: $NICHE"
 
-      # ---------------------------------------------------------------
-      # FIX: Patch the Netlify site's base directory to clients/<slug>
-      # This overwrites any stale absolute path (/opt/build) stored in
-      # the Netlify site settings before the deploy runs.
-      # ---------------------------------------------------------------
-      - name: Patch Netlify site base directory
-        if: steps.detect.outputs.client_slug != '' && env.NETLIFY_TOKEN != ''
+      # -----------------------------------------------------------
+      # PATCH Netlify site build_settings.base before deploy runs.
+      # This is the DEFINITIVE fix for /opt/build errors.
+      # Requires NETLIFY_TOKEN secret in repo settings.
+      # -----------------------------------------------------------
+      - name: Patch Netlify site base directory via API
+        if: steps.detect.outputs.client_slug != ''
         env:
           NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
         run: |
+          if [ -z "$NETLIFY_TOKEN" ]; then
+            echo "NETLIFY_TOKEN not set — skipping API patch."
+            echo "Add it: GitHub repo → Settings → Secrets → NETLIFY_TOKEN"
+            exit 0
+          fi
+
           SLUG="${{ steps.detect.outputs.client_slug }}"
           SITE_NAME="nexus-${SLUG}"
 
-          # Determine base dir: demo folders live at root, client folders under clients/
           case "$SLUG" in
             demo-*) BASE_DIR="${SLUG}" ;;
             *)      BASE_DIR="clients/${SLUG}" ;;
           esac
 
-          echo "Looking up Netlify site: $SITE_NAME"
-          SITE_ID=$(curl -s \
+          # Find site ID by name
+          SITE_ID=$(curl -sf \
             -H "Authorization: Bearer $NETLIFY_TOKEN" \
             "https://api.netlify.com/api/v1/sites?filter=all&per_page=100" \
             | python3 -c "
 import json,sys
 sites=json.load(sys.stdin)
-match=[s for s in sites if s.get('name')=='$SITE_NAME']
-print(match[0]['id'] if match else '')
+m=[s['id'] for s in sites if s.get('name')=='$SITE_NAME']
+print(m[0] if m else '')
 ")
 
           if [ -z "$SITE_ID" ]; then
-            echo "Site $SITE_NAME not found on Netlify — skipping patch (site may not exist yet)."
+            echo "Site $SITE_NAME not found on Netlify — will be created on first deploy."
             exit 0
           fi
 
-          echo "Patching site $SITE_ID → base_dir=$BASE_DIR"
-          HTTP_STATUS=$(curl -s -o /tmp/patch_response.json -w "%{http_code}" \
+          echo "Patching $SITE_NAME ($SITE_ID) → base=$BASE_DIR"
+          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" \
             -X PATCH "https://api.netlify.com/api/v1/sites/${SITE_ID}" \
             -H "Authorization: Bearer $NETLIFY_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"build_settings\": {\"base\": \"${BASE_DIR}\", \"dir\": \".\", \"cmd\": \"\"}}")
-
-          echo "Netlify PATCH responded: $HTTP_STATUS"
-          cat /tmp/patch_response.json | python3 -c "
-import json,sys
-r=json.load(sys.stdin)
-print('build_settings:', r.get('build_settings',{}))
-"
-
-          if [ "$HTTP_STATUS" != "200" ]; then
-            echo "WARNING: Netlify PATCH returned $HTTP_STATUS — deploy may still use wrong base dir" >&2
-          fi
+            -d "{\"build_settings\":{\"base\":\"${BASE_DIR}\",\"dir\":\".\",\"cmd\":\"\"}}")
+          echo "PATCH status: $STATUS"
 
       - name: Ping n8n — trigger sale pipeline
         if: steps.detect.outputs.client_slug != ''
         run: |
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          if [ -z "${{ secrets.N8N_WEBHOOK_URL }}" ]; then
+            echo "N8N_WEBHOOK_URL not set — skipping n8n ping."
+            exit 0
+          fi
+          curl -s -o /dev/null -w "n8n HTTP: %{http_code}\n" \
             -X POST "${{ secrets.N8N_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d "$(cat <<EOF
-          {
-            "event": "client_deployed",
-            "client_slug": "${{ steps.detect.outputs.client_slug }}",
-            "netlify_url": "${{ steps.enrich.outputs.netlify_url }}",
-            "niche": "${{ steps.enrich.outputs.niche }}",
-            "repo": "${{ github.repository }}",
-            "commit_sha": "${{ github.sha }}",
-            "pushed_at": "${{ github.event.head_commit.timestamp }}",
-            "committer": "${{ github.event.head_commit.author.name }}"
-          }
-          EOF
-          )")
-          echo "n8n responded with HTTP $HTTP_STATUS"
-          if [ "$HTTP_STATUS" != "200" ]; then
-            echo "Warning: n8n webhook returned $HTTP_STATUS" >&2
-          fi
+            -d '{"event":"client_deployed","client_slug":"${{ steps.detect.outputs.client_slug }}","netlify_url":"${{ steps.enrich.outputs.netlify_url }}","niche":"${{ steps.enrich.outputs.niche }}","repo":"${{ github.repository }}","commit_sha":"${{ github.sha }}"}'
