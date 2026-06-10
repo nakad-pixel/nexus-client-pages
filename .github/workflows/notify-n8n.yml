@@ -17,12 +17,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2  # Need HEAD~1 to diff against
+          fetch-depth: 2
 
       - name: Detect changed client folder
         id: detect
         run: |
-          # Get the first changed path under clients/ or demo-*/
           CHANGED_PATH=$(git diff --name-only HEAD~1 HEAD \
             | grep -E '^(clients/|demo-restaurant/|demo-salon/|demo-realestate/)' \
             | head -1)
@@ -33,15 +32,12 @@ jobs:
             exit 0
           fi
 
-          # Extract the slug: first path segment after clients/ OR the demo folder name
           if echo "$CHANGED_PATH" | grep -q '^clients/'; then
             CLIENT_SLUG=$(echo "$CHANGED_PATH" | cut -d'/' -f2)
           else
-            # demo-restaurant → demo-restaurant
             CLIENT_SLUG=$(echo "$CHANGED_PATH" | cut -d'/' -f1)
           fi
 
-          # Skip template placeholder
           if [ "$CLIENT_SLUG" = "_template" ]; then
             echo "Template folder — skipping."
             echo "client_slug=" >> $GITHUB_OUTPUT
@@ -56,32 +52,76 @@ jobs:
         if: steps.detect.outputs.client_slug != ''
         run: |
           SLUG="${{ steps.detect.outputs.client_slug }}"
-
-          # Netlify site name: nexus-<slug> (lowercase, hyphens only)
           NETLIFY_SITE="nexus-${SLUG}"
           NETLIFY_URL="https://${NETLIFY_SITE}.netlify.app"
           echo "netlify_url=$NETLIFY_URL" >> $GITHUB_OUTPUT
+          echo "netlify_site=$NETLIFY_SITE" >> $GITHUB_OUTPUT
 
-          # Heuristic niche detection from slug keywords
           NICHE="business"
           case "$SLUG" in
-            *restaurant*|*food*|*cafe*|*dhaba*|*biryani*|*hotel*)
-              NICHE="restaurant" ;;
-            *salon*|*spa*|*beauty*|*hair*|*nail*|*glamour*)
-              NICHE="salon" ;;
-            *real*estate*|*property*|*homes*|*realty*|*flat*|*villa*)
-              NICHE="real-estate" ;;
-            *gym*|*fitness*|*yoga*|*wellness*)
-              NICHE="fitness" ;;
-            *doctor*|*clinic*|*dental*|*health*|*hospital*)
-              NICHE="healthcare" ;;
-            *school*|*college*|*academy*|*coaching*|*tutor*)
-              NICHE="education" ;;
-            *shop*|*store*|*boutique*|*fashion*|*cloth*)
-              NICHE="retail" ;;
+            *restaurant*|*food*|*cafe*|*dhaba*|*biryani*|*hotel*) NICHE="restaurant" ;;
+            *salon*|*spa*|*beauty*|*hair*|*nail*|*glamour*)        NICHE="salon" ;;
+            *real*estate*|*property*|*homes*|*realty*|*flat*|*villa*) NICHE="real-estate" ;;
+            *gym*|*fitness*|*yoga*|*wellness*)                     NICHE="fitness" ;;
+            *doctor*|*clinic*|*dental*|*health*|*hospital*)        NICHE="healthcare" ;;
+            *school*|*college*|*academy*|*coaching*|*tutor*)       NICHE="education" ;;
+            *shop*|*store*|*boutique*|*fashion*|*cloth*)           NICHE="retail" ;;
           esac
           echo "niche=$NICHE" >> $GITHUB_OUTPUT
           echo "Netlify URL: $NETLIFY_URL | Niche: $NICHE"
+
+      # ---------------------------------------------------------------
+      # FIX: Patch the Netlify site's base directory to clients/<slug>
+      # This overwrites any stale absolute path (/opt/build) stored in
+      # the Netlify site settings before the deploy runs.
+      # ---------------------------------------------------------------
+      - name: Patch Netlify site base directory
+        if: steps.detect.outputs.client_slug != '' && env.NETLIFY_TOKEN != ''
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+        run: |
+          SLUG="${{ steps.detect.outputs.client_slug }}"
+          SITE_NAME="nexus-${SLUG}"
+
+          # Determine base dir: demo folders live at root, client folders under clients/
+          case "$SLUG" in
+            demo-*) BASE_DIR="${SLUG}" ;;
+            *)      BASE_DIR="clients/${SLUG}" ;;
+          esac
+
+          echo "Looking up Netlify site: $SITE_NAME"
+          SITE_ID=$(curl -s \
+            -H "Authorization: Bearer $NETLIFY_TOKEN" \
+            "https://api.netlify.com/api/v1/sites?filter=all&per_page=100" \
+            | python3 -c "
+import json,sys
+sites=json.load(sys.stdin)
+match=[s for s in sites if s.get('name')=='$SITE_NAME']
+print(match[0]['id'] if match else '')
+")
+
+          if [ -z "$SITE_ID" ]; then
+            echo "Site $SITE_NAME not found on Netlify — skipping patch (site may not exist yet)."
+            exit 0
+          fi
+
+          echo "Patching site $SITE_ID → base_dir=$BASE_DIR"
+          HTTP_STATUS=$(curl -s -o /tmp/patch_response.json -w "%{http_code}" \
+            -X PATCH "https://api.netlify.com/api/v1/sites/${SITE_ID}" \
+            -H "Authorization: Bearer $NETLIFY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"build_settings\": {\"base\": \"${BASE_DIR}\", \"dir\": \".\", \"cmd\": \"\"}}")
+
+          echo "Netlify PATCH responded: $HTTP_STATUS"
+          cat /tmp/patch_response.json | python3 -c "
+import json,sys
+r=json.load(sys.stdin)
+print('build_settings:', r.get('build_settings',{}))
+"
+
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "WARNING: Netlify PATCH returned $HTTP_STATUS — deploy may still use wrong base dir" >&2
+          fi
 
       - name: Ping n8n — trigger sale pipeline
         if: steps.detect.outputs.client_slug != ''

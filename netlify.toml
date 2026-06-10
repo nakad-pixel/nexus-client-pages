@@ -1,0 +1,30 @@
+# ================================================================
+# Nexus Client Pages — ROOT Netlify Config
+#
+# PURPOSE: This file exists ONLY to prevent Netlify from using
+# the absolute path "/opt/build" stored in the site's build
+# settings. When a netlify.toml is present at repo root, Netlify
+# reads build config from HERE and ignores the UI base directory.
+#
+# Per-client subdirectory deployments:
+#   Each Netlify site should set "Base directory" in the UI to
+#   clients/<client-slug> (relative, no leading slash).
+#   The clients/<slug>/netlify.toml then sets publish = "."
+# ================================================================
+
+[build]
+  command = ""
+  publish = "."
+
+[[redirects]]
+  from = "/*"
+  to   = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options          = "DENY"
+    X-Content-Type-Options   = "nosniff"
+    Referrer-Policy          = "strict-origin-when-cross-origin"
+    Cache-Control            = "public, max-age=3600"
