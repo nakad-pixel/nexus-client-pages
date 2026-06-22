@@ -1,4 +1,4 @@
-name: Auto-Deploy → Notify n8n Sale Pipeline
+name: Auto-Deploy → Netlify + GitHub Pages
 
 on:
   push:
@@ -8,10 +8,27 @@ on:
       - 'demo-restaurant/**'
       - 'demo-salon/**'
       - 'demo-realestate/**'
+      - 'shared-assets/**'
+      - '.github/workflows/deploy.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  notify-n8n:
+  detect:
     runs-on: ubuntu-latest
+    outputs:
+      client_slug: ${{ steps.detect.outputs.client_slug }}
+      base_dir: ${{ steps.detect.outputs.base_dir }}
+      netlify_url: ${{ steps.enrich.outputs.netlify_url }}
+      netlify_site: ${{ steps.enrich.outputs.netlify_site }}
+      niche: ${{ steps.enrich.outputs.niche }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,21 +44,26 @@ jobs:
 
           if [ -z "$CHANGED_PATH" ]; then
             echo "client_slug=" >> $GITHUB_OUTPUT
+            echo "base_dir=" >> $GITHUB_OUTPUT
             exit 0
           fi
 
           if echo "$CHANGED_PATH" | grep -q '^clients/'; then
             CLIENT_SLUG=$(echo "$CHANGED_PATH" | cut -d'/' -f2)
+            BASE_DIR="clients/${CLIENT_SLUG}"
           else
             CLIENT_SLUG=$(echo "$CHANGED_PATH" | cut -d'/' -f1)
+            BASE_DIR="${CLIENT_SLUG}"
           fi
 
           if [ "$CLIENT_SLUG" = "_template" ]; then
             echo "client_slug=" >> $GITHUB_OUTPUT
+            echo "base_dir=" >> $GITHUB_OUTPUT
             exit 0
           fi
 
           echo "client_slug=$CLIENT_SLUG" >> $GITHUB_OUTPUT
+          echo "base_dir=$BASE_DIR" >> $GITHUB_OUTPUT
 
       - name: Derive Netlify URL and niche
         id: enrich
@@ -66,17 +88,24 @@ jobs:
           esac
           echo "niche=$NICHE" >> $GITHUB_OUTPUT
 
-      - name: Patch Netlify site base directory via API
-        if: steps.detect.outputs.client_slug != ''
+  deploy-netlify:
+    needs: detect
+    if: needs.detect.outputs.client_slug != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Patch Netlify base directory & trigger deploy
         env:
           NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
         run: |
           if [ -z "$NETLIFY_TOKEN" ]; then
-            echo "NETLIFY_TOKEN not set — skipping API patch."
+            echo "NETLIFY_TOKEN not set — skipping Netlify deploy."
             exit 0
           fi
 
-          SLUG="${{ steps.detect.outputs.client_slug }}"
+          SLUG="${{ needs.detect.outputs.client_slug }}"
           SITE_NAME="nexus-${SLUG}"
 
           case "$SLUG" in
@@ -87,16 +116,11 @@ jobs:
           SITE_ID=$(curl -sf \
             -H "Authorization: Bearer $NETLIFY_TOKEN" \
             "https://api.netlify.com/api/v1/sites?filter=all&per_page=100" \
-            | python3 -c "
-import json,sys
-sites=json.load(sys.stdin)
-m=[s['id'] for s in sites if s.get('name')=='$SITE_NAME']
-print(m[0] if m else '')
-")
+            | python3 -c "import json,sys; sites=json.load(sys.stdin); m=[s['id'] for s in sites if s.get('name')=='$SITE_NAME']; print(m[0] if m else '')")
 
           if [ -z "$SITE_ID" ]; then
-            echo "Site $SITE_NAME not found on Netlify — will be created on first deploy."
-            exit 0
+            echo "Site $SITE_NAME not found on Netlify."
+            exit 1
           fi
 
           echo "Patching $SITE_NAME ($SITE_ID) → base=$BASE_DIR"
@@ -107,8 +131,51 @@ print(m[0] if m else '')
             -d "{\"build_settings\":{\"base\":\"${BASE_DIR}\",\"dir\":\".\",\"cmd\":\"\"}}")
           echo "PATCH status: $STATUS"
 
+          echo "Triggering Netlify build for $SITE_NAME"
+          BUILD_RESP=$(curl -sf \
+            -X POST "https://api.netlify.com/api/v1/sites/${SITE_ID}/builds" \
+            -H "Authorization: Bearer $NETLIFY_TOKEN")
+          BUILD_ID=$(echo "$BUILD_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('id','unknown'))")
+          echo "Build triggered: $BUILD_ID"
+
+  deploy-github-pages:
+    needs: detect
+    if: needs.detect.outputs.client_slug != ''
+    runs-on: ubuntu-latest
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare Pages artifact
+        run: |
+          mkdir -p _site
+          for dir in clients demo-* shared-assets; do
+            if [ -d "$dir" ]; then
+              cp -r "$dir" _site/
+            fi
+          done
+          ls -la _site/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  notify:
+    needs: [detect, deploy-netlify, deploy-github-pages]
+    if: always() && needs.detect.outputs.client_slug != ''
+    runs-on: ubuntu-latest
+    steps:
       - name: Ping n8n — trigger sale pipeline
-        if: steps.detect.outputs.client_slug != ''
         run: |
           if [ -z "${{ secrets.N8N_WEBHOOK_URL }}" ]; then
             echo "N8N_WEBHOOK_URL not set — skipping n8n ping."
@@ -117,4 +184,4 @@ print(m[0] if m else '')
           curl -s -o /dev/null -w "n8n HTTP: %{http_code}\n" \
             -X POST "${{ secrets.N8N_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d '{"event":"client_deployed","client_slug":"${{ steps.detect.outputs.client_slug }}","netlify_url":"${{ steps.enrich.outputs.netlify_url }}","niche":"${{ steps.enrich.outputs.niche }}","repo":"${{ github.repository }}","commit_sha":"${{ github.sha }}"}'
+            -d '{"event":"client_deployed","client_slug":"${{ needs.detect.outputs.client_slug }}","netlify_url":"${{ needs.detect.outputs.netlify_url }}","niche":"${{ needs.detect.outputs.niche }}","repo":"${{ github.repository }}","commit_sha":"${{ github.sha }}","github_pages_url":"${{ needs.deploy-github-pages.outputs.page_url }}"}'
