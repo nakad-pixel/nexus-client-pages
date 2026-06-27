@@ -16,4 +16,4 @@
     Referrer-Policy        = "strict-origin-when-cross-origin"
     Cache-Control          = "public, max-age=3600"
 
-# Deploy trigger: v2
+# deploy trigger v3
