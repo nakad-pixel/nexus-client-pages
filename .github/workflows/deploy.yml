@@ -1,4 +1,4 @@
-name: Auto-Deploy → Netlify + GitHub Pages
+name: Auto-Deploy → Netlify + Activepieces
 
 on:
   push:
@@ -128,7 +128,7 @@ jobs:
             -X PATCH "https://api.netlify.com/api/v1/sites/${SITE_ID}" \
             -H "Authorization: Bearer $NETLIFY_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"build_settings\":{\"base\":\"${BASE_DIR}\",\"dir\":\".\",\"cmd\":\"\"}}")
+            -d "{\"build_settings\":{\"base\":\"${BASE_DIR}\",\"dir\":\".\"  ,\"cmd\":\"\"}}")
           echo "PATCH status: $STATUS"
 
           echo "Triggering Netlify build for $SITE_NAME"
@@ -175,13 +175,13 @@ jobs:
     if: always() && needs.detect.outputs.client_slug != ''
     runs-on: ubuntu-latest
     steps:
-      - name: Ping n8n — trigger sale pipeline
+      - name: Ping Activepieces — trigger sale pipeline
         run: |
-          if [ -z "${{ secrets.N8N_WEBHOOK_URL }}" ]; then
-            echo "N8N_WEBHOOK_URL not set — skipping n8n ping."
+          if [ -z "${{ secrets.AP_WEBHOOK_URL }}" ]; then
+            echo "AP_WEBHOOK_URL not set — skipping Activepieces ping."
             exit 0
           fi
-          curl -s -o /dev/null -w "n8n HTTP: %{http_code}\n" \
-            -X POST "${{ secrets.N8N_WEBHOOK_URL }}" \
+          curl -s -o /dev/null -w "Activepieces HTTP: %{http_code}\n" \
+            -X POST "${{ secrets.AP_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d '{"event":"client_deployed","client_slug":"${{ needs.detect.outputs.client_slug }}","netlify_url":"${{ needs.detect.outputs.netlify_url }}","niche":"${{ needs.detect.outputs.niche }}","repo":"${{ github.repository }}","commit_sha":"${{ github.sha }}","github_pages_url":"${{ needs.deploy-github-pages.outputs.page_url }}"}'
+            -d '{"event":"client_deployed","client_slug":"${{ needs.detect.outputs.client_slug }}","netlify_url":"${{ needs.detect.outputs.netlify_url }}","niche":"${{ needs.detect.outputs.niche }}","repo":"${{ github.repository }}","commit_sha":"${{ github.sha }}","github_pages_url":"${{ needs.deploy-github-pages.outputs.page_url }}"}\'
