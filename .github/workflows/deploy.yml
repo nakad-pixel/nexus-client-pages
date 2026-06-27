@@ -96,7 +96,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Patch Netlify base directory & trigger deploy
+      - name: Deploy client folder directly to Netlify
         env:
           NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
         run: |
@@ -109,34 +109,46 @@ jobs:
           SITE_NAME="nexus-${SLUG}"
 
           case "$SLUG" in
-            demo-*) BASE_DIR="${SLUG}" ;;
-            *)      BASE_DIR="clients/${SLUG}" ;;
+            demo-*) SRC_DIR="${SLUG}" ;;
+            *)      SRC_DIR="clients/${SLUG}" ;;
           esac
 
+          # Look up site ID by name
           SITE_ID=$(curl -sf \
             -H "Authorization: Bearer $NETLIFY_TOKEN" \
             "https://api.netlify.com/api/v1/sites?filter=all&per_page=100" \
             | python3 -c "import json,sys; sites=json.load(sys.stdin); m=[s['id'] for s in sites if s.get('name')=='$SITE_NAME']; print(m[0] if m else '')")
 
           if [ -z "$SITE_ID" ]; then
-            echo "Site $SITE_NAME not found on Netlify."
-            exit 1
+            echo "Site $SITE_NAME not found on Netlify — creating it..."
+            SITE_ID=$(curl -sf \
+              -X POST "https://api.netlify.com/api/v1/sites" \
+              -H "Authorization: Bearer $NETLIFY_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"name\":\"$SITE_NAME\"}" \
+              | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('id',''))")
+            echo "Created site: $SITE_ID"
           fi
 
-          echo "Patching $SITE_NAME ($SITE_ID) → base=$BASE_DIR"
-          STATUS=$(curl -sf -o /dev/null -w "%{http_code}" \
-            -X PATCH "https://api.netlify.com/api/v1/sites/${SITE_ID}" \
-            -H "Authorization: Bearer $NETLIFY_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "{\"build_settings\":{\"base\":\"${BASE_DIR}\",\"dir\":\".\"  ,\"cmd\":\"\"}}")
-          echo "PATCH status: $STATUS"
+          echo "Deploying $SRC_DIR → $SITE_NAME ($SITE_ID)"
 
-          echo "Triggering Netlify build for $SITE_NAME"
-          BUILD_RESP=$(curl -sf \
-            -X POST "https://api.netlify.com/api/v1/sites/${SITE_ID}/builds" \
-            -H "Authorization: Bearer $NETLIFY_TOKEN")
-          BUILD_ID=$(echo "$BUILD_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('id','unknown'))")
-          echo "Build triggered: $BUILD_ID"
+          # Zip the source directory
+          cd "$SRC_DIR"
+          zip -r /tmp/deploy.zip . -x "netlify.toml"
+          cd -
+
+          # Upload zip directly — no build system needed
+          DEPLOY_RESP=$(curl -sf \
+            -X POST "https://api.netlify.com/api/v1/sites/${SITE_ID}/deploys" \
+            -H "Authorization: Bearer $NETLIFY_TOKEN" \
+            -H "Content-Type: application/zip" \
+            --data-binary @/tmp/deploy.zip)
+
+          DEPLOY_URL=$(echo "$DEPLOY_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('deploy_ssl_url') or d.get('ssl_url') or d.get('url','unknown'))")
+          DEPLOY_STATE=$(echo "$DEPLOY_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('state','unknown'))")
+          echo "Deploy state: $DEPLOY_STATE"
+          echo "Deploy URL: $DEPLOY_URL"
+          echo "Live at: https://${SITE_NAME}.netlify.app"
 
   deploy-github-pages:
     needs: detect
@@ -184,4 +196,4 @@ jobs:
           curl -s -o /dev/null -w "Activepieces HTTP: %{http_code}\n" \
             -X POST "${{ secrets.AP_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d '{"event":"client_deployed","client_slug":"${{ needs.detect.outputs.client_slug }}","netlify_url":"${{ needs.detect.outputs.netlify_url }}","niche":"${{ needs.detect.outputs.niche }}","repo":"${{ github.repository }}","commit_sha":"${{ github.sha }}","github_pages_url":"${{ needs.deploy-github-pages.outputs.page_url }}"}\'
+            -d '{"event":"client_deployed","client_slug":"${{ needs.detect.outputs.client_slug }}","netlify_url":"${{ needs.detect.outputs.netlify_url }}","niche":"${{ needs.detect.outputs.niche }}","repo":"${{ github.repository }}","commit_sha":"${{ github.sha }}","github_pages_url":"${{ needs.deploy-github-pages.outputs.page_url }}"}'
