@@ -16,4 +16,4 @@
     Referrer-Policy        = "strict-origin-when-cross-origin"
     Cache-Control          = "public, max-age=3600"
 
-# deploy trigger v4 — redeploy after workflow fix
+# deploy trigger v5 — Netlify CLI deploy, GitHub-linked
