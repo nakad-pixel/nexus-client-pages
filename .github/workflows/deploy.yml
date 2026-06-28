@@ -18,89 +18,49 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
-      - name: Detect changed client
+      - name: Detect changed client slug
         id: detect
+        shell: bash
         run: |
-          CHANGED=$(git diff --name-only HEAD~1 HEAD | grep "^clients/" | head -1)
+          CHANGED=$(git diff --name-only HEAD~1 HEAD | grep "^clients/" | grep -v "_template" | head -1 || true)
           if [ -z "$CHANGED" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            exit 0
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            SLUG=$(echo "$CHANGED" | awk -F/ '{print $2}')
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
           fi
-          SLUG=$(echo "$CHANGED" | cut -d'/' -f2)
-          if [ "$SLUG" = "_template" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          echo "skip=false" >> $GITHUB_OUTPUT
-          echo "slug=$SLUG" >> $GITHUB_OUTPUT
-          echo "src=clients/$SLUG" >> $GITHUB_OUTPUT
-          echo "site=nexus-$SLUG" >> $GITHUB_OUTPUT
-
-      - name: Validate client folder
-        if: steps.detect.outputs.skip != 'true'
-        run: |
-          SRC="${{ steps.detect.outputs.src }}"
-          if [ ! -f "$SRC/index.html" ]; then
-            echo "ERROR: $SRC/index.html missing"
-            exit 1
-          fi
-          echo "index.html found, size: $(wc -c < $SRC/index.html) bytes"
 
       - name: Install Netlify CLI
         if: steps.detect.outputs.skip != 'true'
+        shell: bash
         run: npm install -g netlify-cli@17
 
-      - name: Create or find Netlify site
+      - name: Run deploy script
         if: steps.detect.outputs.skip != 'true'
-        id: site
+        shell: bash
         env:
           NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
-          SITE_NAME: ${{ steps.detect.outputs.site }}
         run: |
-          ALL=$(curl -sf -H "Authorization: Bearer $NETLIFY_TOKEN" "https://api.netlify.com/api/v1/sites?filter=all&per_page=100")
-          SITE_ID=$(echo "$ALL" | python3 -c "
-import json,sys
-sites = json.load(sys.stdin)
-name = '$SITE_NAME'
-match = [s['id'] for s in sites if s.get('name') == name]
-print(match[0] if match else '')
-")
-          if [ -z "$SITE_ID" ]; then
-            echo "Creating site $SITE_NAME..."
-            RESP=$(curl -sf -X POST "https://api.netlify.com/api/v1/sites"               -H "Authorization: Bearer $NETLIFY_TOKEN"               -H "Content-Type: application/json"               -d "{"name":"$SITE_NAME"}")
-            SITE_ID=$(echo "$RESP" | python3 -c "import json,sys; print(json.load(sys.stdin).get('id',''))")
-            echo "Created: $SITE_ID"
-          else
-            echo "Found: $SITE_ID"
-          fi
-          echo "site_id=$SITE_ID" >> $GITHUB_OUTPUT
-
-      - name: Deploy to Netlify via CLI
-        if: steps.detect.outputs.skip != 'true'
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
-          NETLIFY_SITE_ID: ${{ steps.site.outputs.site_id }}
-        run: |
-          SRC="${{ steps.detect.outputs.src }}"
-          SITE_NAME="${{ steps.detect.outputs.site }}"
-          echo "Deploying $SRC to $SITE_NAME (ID: $NETLIFY_SITE_ID)"
-          netlify deploy --dir="$SRC" --prod --message="GH Actions ${{ github.sha }}"
-          echo "Live at: https://$SITE_NAME.netlify.app"
+          chmod +x scripts/deploy.sh
+          bash scripts/deploy.sh "${{ steps.detect.outputs.slug }}" "$NETLIFY_TOKEN"
 
       - name: Ping Activepieces
-        if: steps.detect.outputs.skip != 'true' && secrets.AP_WEBHOOK_URL != ''
+        if: steps.detect.outputs.skip != 'true'
+        shell: bash
         env:
-          AP_URL: ${{ secrets.AP_WEBHOOK_URL }}
+          AP_WEBHOOK_URL: ${{ secrets.AP_WEBHOOK_URL }}
           SLUG: ${{ steps.detect.outputs.slug }}
-          SITE: ${{ steps.detect.outputs.site }}
         run: |
-          if [ -z "$AP_URL" ]; then
+          if [ -z "$AP_WEBHOOK_URL" ]; then
             echo "AP_WEBHOOK_URL not set, skipping."
             exit 0
           fi
-          curl -s -X POST "$AP_URL"             -H "Content-Type: application/json"             -d "{"event":"client_deployed","slug":"$SLUG","url":"https://$SITE.netlify.app","commit":"${{ github.sha }}"}"
+          PAYLOAD=$(printf '{"event":"client_deployed","slug":"%s","url":"https://nexus-%s.netlify.app"}' "$SLUG" "$SLUG")
+          curl -sf -X POST "$AP_WEBHOOK_URL" -H "Content-Type: application/json" -d "$PAYLOAD" || true
