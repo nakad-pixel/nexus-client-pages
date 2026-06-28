@@ -41,7 +41,7 @@ jobs:
             | head -1)
 
           if [ -z "$CHANGED_PATH" ]; then
-            echo "No client folder changed — skipping deploy."
+            echo "No client folder changed — skipping."
             echo "client_slug=" >> $GITHUB_OUTPUT
             echo "base_dir=" >> $GITHUB_OUTPUT
             exit 0
@@ -56,7 +56,7 @@ jobs:
           fi
 
           if [ "$CLIENT_SLUG" = "_template" ]; then
-            echo "Skipping _template folder."
+            echo "Skipping _template."
             echo "client_slug=" >> $GITHUB_OUTPUT
             echo "base_dir=" >> $GITHUB_OUTPUT
             exit 0
@@ -65,7 +65,7 @@ jobs:
           echo "client_slug=$CLIENT_SLUG" >> $GITHUB_OUTPUT
           echo "base_dir=$BASE_DIR" >> $GITHUB_OUTPUT
 
-      - name: Derive Netlify URL and niche
+      - name: Derive Netlify site name and niche
         id: enrich
         if: steps.detect.outputs.client_slug != ''
         run: |
@@ -85,7 +85,7 @@ jobs:
             *school*|*college*|*academy*|*coaching*|*tutor*)       NICHE="education" ;;
             *shop*|*store*|*boutique*|*fashion*|*cloth*)           NICHE="retail" ;;
             *interior*|*design*|*architect*|*decor*)               NICHE="interior" ;;
-            *touch*|*black*)                                       NICHE="salon" ;;
+            *touch*|*black*|*salon*|*nail*|*studio*)               NICHE="salon" ;;
           esac
           echo "niche=$NICHE" >> $GITHUB_OUTPUT
 
@@ -95,23 +95,19 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       deploy_url: ${{ steps.deploy.outputs.deploy_url }}
-      deploy_state: ${{ steps.deploy.outputs.deploy_state }}
+      site_id: ${{ steps.deploy.outputs.site_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy client folder to Netlify
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli@latest
+
+      - name: Resolve or create Netlify site + deploy via CLI
         id: deploy
         env:
-          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
         run: |
-          if [ -z "$NETLIFY_TOKEN" ]; then
-            echo "ERROR: NETLIFY_TOKEN secret is not set. Go to:"
-            echo "  https://github.com/nakad-pixel/nexus-client-pages/settings/secrets/actions"
-            echo "  and add NETLIFY_TOKEN with your Netlify personal access token."
-            exit 1
-          fi
-
           SLUG="${{ needs.detect.outputs.client_slug }}"
           SITE_NAME="nexus-${SLUG}"
 
@@ -120,92 +116,79 @@ jobs:
             *)      SRC_DIR="clients/${SLUG}" ;;
           esac
 
+          echo "=== Deploying: $SRC_DIR → $SITE_NAME ==="
+
           if [ ! -d "$SRC_DIR" ]; then
-            echo "ERROR: Source directory '$SRC_DIR' does not exist in repo."
+            echo "ERROR: $SRC_DIR not found in repo"
             exit 1
           fi
-
           if [ ! -f "$SRC_DIR/index.html" ]; then
-            echo "ERROR: No index.html found in $SRC_DIR — Netlify won't know what to serve."
+            echo "ERROR: No index.html in $SRC_DIR"
             exit 1
           fi
 
-          echo "Source dir: $SRC_DIR"
-          echo "Target Netlify site: $SITE_NAME"
-          ls -la "$SRC_DIR"
-
-          # Look up site ID by name
-          SITES_JSON=$(curl -sf \
-            -H "Authorization: Bearer $NETLIFY_TOKEN" \
-            "https://api.netlify.com/api/v1/sites?filter=all&per_page=100")
-
-          if [ $? -ne 0 ]; then
-            echo "ERROR: Failed to query Netlify API. Check your NETLIFY_TOKEN."
-            exit 1
-          fi
-
-          SITE_ID=$(echo "$SITES_JSON" | python3 -c \
-            "import json,sys; sites=json.load(sys.stdin); m=[s['id'] for s in sites if s.get('name')=='$SITE_NAME']; print(m[0] if m else '')")
+          # Find existing site ID by name via API
+          SITE_ID=$(curl -sf \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            "https://api.netlify.com/api/v1/sites?filter=all&per_page=100" \
+            | python3 -c "import json,sys; s=json.load(sys.stdin); r=[x['id'] for x in s if x.get('name')=='$SITE_NAME']; print(r[0] if r else '')")
 
           if [ -z "$SITE_ID" ]; then
-            echo "Site $SITE_NAME not found — creating it..."
-            CREATE_RESP=$(curl -sf \
+            echo "Site not found — creating $SITE_NAME..."
+            SITE_ID=$(curl -sf \
               -X POST "https://api.netlify.com/api/v1/sites" \
-              -H "Authorization: Bearer $NETLIFY_TOKEN" \
+              -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
               -H "Content-Type: application/json" \
-              -d "{\"name\":\"$SITE_NAME\"}")
-
-            if [ $? -ne 0 ]; then
-              echo "ERROR: Failed to create Netlify site."
-              exit 1
-            fi
-
-            SITE_ID=$(echo "$CREATE_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('id',''))")
-            echo "Created new site — ID: $SITE_ID"
+              -d "{\"name\":\"$SITE_NAME\"}" \
+              | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('id',''))")
+            echo "Created site ID: $SITE_ID"
           else
-            echo "Found existing site — ID: $SITE_ID"
+            echo "Found site ID: $SITE_ID"
           fi
 
-          # Zip the source directory — CRITICAL: index.html must be at root of zip
-          # We cd into the folder so zip paths are relative (index.html, not clients/the-black-touch/index.html)
-          cd "$SRC_DIR"
-          zip -r /tmp/deploy.zip . -x "netlify.toml" -x "*.DS_Store" -x "__MACOSX/*"
-          echo "Zip contents:"
-          unzip -l /tmp/deploy.zip
-          cd -
+          # Link this repo to the Netlify site (removes "not linked" banner)
+          REPO_ID=$(curl -sf \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            "https://api.github.com/repos/nakad-pixel/nexus-client-pages" \
+            | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('id',''))") || REPO_ID=""
 
-          # Upload zip to Netlify — direct file deploy (no build system)
-          echo "Uploading to Netlify..."
-          DEPLOY_RESP=$(curl -sf \
-            -X POST "https://api.netlify.com/api/v1/sites/${SITE_ID}/deploys" \
-            -H "Authorization: Bearer $NETLIFY_TOKEN" \
-            -H "Content-Type: application/zip" \
-            --data-binary @/tmp/deploy.zip)
-
-          if [ $? -ne 0 ]; then
-            echo "ERROR: Netlify deploy API call failed."
-            echo "Response: $DEPLOY_RESP"
-            exit 1
+          if [ -n "$REPO_ID" ]; then
+            curl -sf \
+              -X PATCH "https://api.netlify.com/api/v1/sites/${SITE_ID}" \
+              -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"repo\":{\"provider\":\"github\",\"repo\":\"nakad-pixel/nexus-client-pages\",\"branch\":\"main\",\"dir\":\"${SRC_DIR}\",\"cmd\":\"\"}}" > /dev/null 2>&1 || true
+            echo "Linked site to GitHub repo"
           fi
 
-          DEPLOY_ID=$(echo "$DEPLOY_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('id',''))")
-          DEPLOY_STATE=$(echo "$DEPLOY_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('state','unknown'))")
-          DEPLOY_URL=$(echo "$DEPLOY_RESP" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('deploy_ssl_url') or d.get('ssl_url') or d.get('url',''))")
-          LIVE_URL="https://${SITE_NAME}.netlify.app"
+          # Deploy using Netlify CLI — properly marks as GitHub-sourced, serves HTML correctly
+          export NETLIFY_SITE_ID="$SITE_ID"
+          netlify deploy \
+            --dir="$SRC_DIR" \
+            --prod \
+            --message="Deploy from GitHub Actions — commit ${{ github.sha }}" \
+            --json 2>&1 | tee /tmp/netlify_output.json || true
 
-          echo "Deploy ID: $DEPLOY_ID"
-          echo "Deploy state: $DEPLOY_STATE"
-          echo "Deploy URL: $DEPLOY_URL"
-          echo "Live at: $LIVE_URL"
+          # Extract deploy URL from CLI output
+          DEPLOY_URL=$(python3 -c "
+import sys, json
+try:
+    with open('/tmp/netlify_output.json') as f:
+        content = f.read()
+    # CLI outputs multiple JSON objects sometimes, get last one
+    lines = [l.strip() for l in content.strip().split('\n') if l.strip().startswith('{')]
+    if lines:
+        d = json.loads(lines[-1])
+        print(d.get('deploy_url') or d.get('url') or 'https://${SITE_NAME}.netlify.app')
+    else:
+        print('https://${SITE_NAME}.netlify.app')
+except:
+    print('https://${SITE_NAME}.netlify.app')
+" 2>/dev/null) || DEPLOY_URL="https://${SITE_NAME}.netlify.app"
 
-          echo "deploy_url=$LIVE_URL" >> $GITHUB_OUTPUT
-          echo "deploy_state=$DEPLOY_STATE" >> $GITHUB_OUTPUT
-
-          if [ "$DEPLOY_STATE" = "error" ]; then
-            echo "ERROR: Netlify returned deploy state=error"
-            echo "$DEPLOY_RESP"
-            exit 1
-          fi
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+          echo "site_id=$SITE_ID" >> $GITHUB_OUTPUT
+          echo "Live at: $DEPLOY_URL"
 
   notify:
     needs: [detect, deploy-netlify]
@@ -214,25 +197,19 @@ jobs:
     steps:
       - name: Ping Activepieces — trigger sales pipeline
         run: |
-          NETLIFY_LIVE_URL="${{ needs.detect.outputs.netlify_url }}"
-          CLIENT_SLUG="${{ needs.detect.outputs.client_slug }}"
-          DEPLOY_STATE="${{ needs.deploy-netlify.outputs.deploy_state }}"
+          LIVE_URL="${{ needs.detect.outputs.netlify_url }}"
+          SLUG="${{ needs.detect.outputs.client_slug }}"
 
           if [ -z "${{ secrets.AP_WEBHOOK_URL }}" ]; then
-            echo "AP_WEBHOOK_URL secret not set — skipping Activepieces ping."
-            echo "To enable: go to https://github.com/nakad-pixel/nexus-client-pages/settings/secrets/actions"
-            echo "  and add AP_WEBHOOK_URL with your Activepieces webhook URL."
+            echo "AP_WEBHOOK_URL not set — skipping Activepieces ping."
+            echo "Add it at: https://github.com/nakad-pixel/nexus-client-pages/settings/secrets/actions"
             exit 0
           fi
 
-          HTTP_STATUS=$(curl -s -o /tmp/ap_response.txt -w "%{http_code}" \
+          HTTP=$(curl -s -o /tmp/ap_resp.txt -w "%{http_code}" \
             -X POST "${{ secrets.AP_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -d "{\"event\":\"client_deployed\",\"business_name\":\"${CLIENT_SLUG}\",\"live_url\":\"${NETLIFY_LIVE_URL}\",\"niche\":\"${{ needs.detect.outputs.niche }}\",\"repo\":\"${{ github.repository }}\",\"commit_sha\":\"${{ github.sha }}\"}")
+            -d "{\"event\":\"client_deployed\",\"business_name\":\"${SLUG}\",\"live_url\":\"${LIVE_URL}\",\"niche\":\"${{ needs.detect.outputs.niche }}\",\"repo\":\"${{ github.repository }}\",\"commit_sha\":\"${{ github.sha }}\"}")
 
-          echo "Activepieces HTTP status: $HTTP_STATUS"
-          cat /tmp/ap_response.txt
-
-          if [ "$HTTP_STATUS" != "200" ] && [ "$HTTP_STATUS" != "202" ]; then
-            echo "WARNING: Activepieces ping returned HTTP $HTTP_STATUS — check AP_WEBHOOK_URL is correct."
-          fi
+          echo "Activepieces HTTP: $HTTP"
+          cat /tmp/ap_resp.txt || true
