@@ -1,215 +1,106 @@
-name: Auto-Deploy → Netlify + Activepieces
+name: Auto-Deploy to Netlify
 
 on:
   push:
     branches: [main]
     paths:
       - 'clients/**'
-      - 'demo-restaurant/**'
-      - 'demo-salon/**'
-      - 'demo-realestate/**'
-      - 'shared-assets/**'
       - '.github/workflows/deploy.yml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: netlify-deploy-${{ github.ref }}
+  group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  detect:
+  deploy:
     runs-on: ubuntu-latest
-    outputs:
-      client_slug: ${{ steps.detect.outputs.client_slug }}
-      base_dir: ${{ steps.detect.outputs.base_dir }}
-      netlify_url: ${{ steps.enrich.outputs.netlify_url }}
-      netlify_site: ${{ steps.enrich.outputs.netlify_site }}
-      niche: ${{ steps.enrich.outputs.niche }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
-      - name: Detect changed client folder
+      - name: Detect changed client
         id: detect
         run: |
-          CHANGED_PATH=$(git diff --name-only HEAD~1 HEAD \
-            | grep -E '^(clients/|demo-restaurant/|demo-salon/|demo-realestate/)' \
-            | head -1)
-
-          if [ -z "$CHANGED_PATH" ]; then
-            echo "No client folder changed — skipping."
-            echo "client_slug=" >> $GITHUB_OUTPUT
-            echo "base_dir=" >> $GITHUB_OUTPUT
+          CHANGED=$(git diff --name-only HEAD~1 HEAD | grep "^clients/" | head -1)
+          if [ -z "$CHANGED" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-
-          if echo "$CHANGED_PATH" | grep -q '^clients/'; then
-            CLIENT_SLUG=$(echo "$CHANGED_PATH" | cut -d'/' -f2)
-            BASE_DIR="clients/${CLIENT_SLUG}"
-          else
-            CLIENT_SLUG=$(echo "$CHANGED_PATH" | cut -d'/' -f1)
-            BASE_DIR="${CLIENT_SLUG}"
-          fi
-
-          if [ "$CLIENT_SLUG" = "_template" ]; then
-            echo "Skipping _template."
-            echo "client_slug=" >> $GITHUB_OUTPUT
-            echo "base_dir=" >> $GITHUB_OUTPUT
+          SLUG=$(echo "$CHANGED" | cut -d'/' -f2)
+          if [ "$SLUG" = "_template" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
             exit 0
           fi
+          echo "skip=false" >> $GITHUB_OUTPUT
+          echo "slug=$SLUG" >> $GITHUB_OUTPUT
+          echo "src=clients/$SLUG" >> $GITHUB_OUTPUT
+          echo "site=nexus-$SLUG" >> $GITHUB_OUTPUT
 
-          echo "client_slug=$CLIENT_SLUG" >> $GITHUB_OUTPUT
-          echo "base_dir=$BASE_DIR" >> $GITHUB_OUTPUT
-
-      - name: Derive Netlify site name and niche
-        id: enrich
-        if: steps.detect.outputs.client_slug != ''
+      - name: Validate client folder
+        if: steps.detect.outputs.skip != 'true'
         run: |
-          SLUG="${{ steps.detect.outputs.client_slug }}"
-          NETLIFY_SITE="nexus-${SLUG}"
-          NETLIFY_URL="https://${NETLIFY_SITE}.netlify.app"
-          echo "netlify_url=$NETLIFY_URL" >> $GITHUB_OUTPUT
-          echo "netlify_site=$NETLIFY_SITE" >> $GITHUB_OUTPUT
-
-          NICHE="business"
-          case "$SLUG" in
-            *restaurant*|*food*|*cafe*|*dhaba*|*biryani*|*hotel*) NICHE="restaurant" ;;
-            *salon*|*spa*|*beauty*|*hair*|*nail*|*glamour*)        NICHE="salon" ;;
-            *real*estate*|*property*|*homes*|*realty*|*flat*|*villa*) NICHE="real-estate" ;;
-            *gym*|*fitness*|*yoga*|*wellness*)                     NICHE="fitness" ;;
-            *doctor*|*clinic*|*dental*|*health*|*hospital*)        NICHE="healthcare" ;;
-            *school*|*college*|*academy*|*coaching*|*tutor*)       NICHE="education" ;;
-            *shop*|*store*|*boutique*|*fashion*|*cloth*)           NICHE="retail" ;;
-            *interior*|*design*|*architect*|*decor*)               NICHE="interior" ;;
-            *touch*|*black*|*salon*|*nail*|*studio*)               NICHE="salon" ;;
-          esac
-          echo "niche=$NICHE" >> $GITHUB_OUTPUT
-
-  deploy-netlify:
-    needs: detect
-    if: needs.detect.outputs.client_slug != ''
-    runs-on: ubuntu-latest
-    outputs:
-      deploy_url: ${{ steps.deploy.outputs.deploy_url }}
-      site_id: ${{ steps.deploy.outputs.site_id }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+          SRC="${{ steps.detect.outputs.src }}"
+          if [ ! -f "$SRC/index.html" ]; then
+            echo "ERROR: $SRC/index.html missing"
+            exit 1
+          fi
+          echo "index.html found, size: $(wc -c < $SRC/index.html) bytes"
 
       - name: Install Netlify CLI
-        run: npm install -g netlify-cli@latest
+        if: steps.detect.outputs.skip != 'true'
+        run: npm install -g netlify-cli@17
 
-      - name: Resolve or create Netlify site + deploy via CLI
-        id: deploy
+      - name: Create or find Netlify site
+        if: steps.detect.outputs.skip != 'true'
+        id: site
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          SITE_NAME: ${{ steps.detect.outputs.site }}
+        run: |
+          ALL=$(curl -sf -H "Authorization: Bearer $NETLIFY_TOKEN" "https://api.netlify.com/api/v1/sites?filter=all&per_page=100")
+          SITE_ID=$(echo "$ALL" | python3 -c "
+import json,sys
+sites = json.load(sys.stdin)
+name = '$SITE_NAME'
+match = [s['id'] for s in sites if s.get('name') == name]
+print(match[0] if match else '')
+")
+          if [ -z "$SITE_ID" ]; then
+            echo "Creating site $SITE_NAME..."
+            RESP=$(curl -sf -X POST "https://api.netlify.com/api/v1/sites"               -H "Authorization: Bearer $NETLIFY_TOKEN"               -H "Content-Type: application/json"               -d "{"name":"$SITE_NAME"}")
+            SITE_ID=$(echo "$RESP" | python3 -c "import json,sys; print(json.load(sys.stdin).get('id',''))")
+            echo "Created: $SITE_ID"
+          else
+            echo "Found: $SITE_ID"
+          fi
+          echo "site_id=$SITE_ID" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Netlify via CLI
+        if: steps.detect.outputs.skip != 'true'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          NETLIFY_SITE_ID: ${{ steps.site.outputs.site_id }}
         run: |
-          SLUG="${{ needs.detect.outputs.client_slug }}"
-          SITE_NAME="nexus-${SLUG}"
+          SRC="${{ steps.detect.outputs.src }}"
+          SITE_NAME="${{ steps.detect.outputs.site }}"
+          echo "Deploying $SRC to $SITE_NAME (ID: $NETLIFY_SITE_ID)"
+          netlify deploy --dir="$SRC" --prod --message="GH Actions ${{ github.sha }}"
+          echo "Live at: https://$SITE_NAME.netlify.app"
 
-          case "$SLUG" in
-            demo-*) SRC_DIR="${SLUG}" ;;
-            *)      SRC_DIR="clients/${SLUG}" ;;
-          esac
-
-          echo "=== Deploying: $SRC_DIR → $SITE_NAME ==="
-
-          if [ ! -d "$SRC_DIR" ]; then
-            echo "ERROR: $SRC_DIR not found in repo"
-            exit 1
-          fi
-          if [ ! -f "$SRC_DIR/index.html" ]; then
-            echo "ERROR: No index.html in $SRC_DIR"
-            exit 1
-          fi
-
-          # Find existing site ID by name via API
-          SITE_ID=$(curl -sf \
-            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
-            "https://api.netlify.com/api/v1/sites?filter=all&per_page=100" \
-            | python3 -c "import json,sys; s=json.load(sys.stdin); r=[x['id'] for x in s if x.get('name')=='$SITE_NAME']; print(r[0] if r else '')")
-
-          if [ -z "$SITE_ID" ]; then
-            echo "Site not found — creating $SITE_NAME..."
-            SITE_ID=$(curl -sf \
-              -X POST "https://api.netlify.com/api/v1/sites" \
-              -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{\"name\":\"$SITE_NAME\"}" \
-              | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('id',''))")
-            echo "Created site ID: $SITE_ID"
-          else
-            echo "Found site ID: $SITE_ID"
-          fi
-
-          # Link this repo to the Netlify site (removes "not linked" banner)
-          REPO_ID=$(curl -sf \
-            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
-            "https://api.github.com/repos/nakad-pixel/nexus-client-pages" \
-            | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('id',''))") || REPO_ID=""
-
-          if [ -n "$REPO_ID" ]; then
-            curl -sf \
-              -X PATCH "https://api.netlify.com/api/v1/sites/${SITE_ID}" \
-              -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{\"repo\":{\"provider\":\"github\",\"repo\":\"nakad-pixel/nexus-client-pages\",\"branch\":\"main\",\"dir\":\"${SRC_DIR}\",\"cmd\":\"\"}}" > /dev/null 2>&1 || true
-            echo "Linked site to GitHub repo"
-          fi
-
-          # Deploy using Netlify CLI — properly marks as GitHub-sourced, serves HTML correctly
-          export NETLIFY_SITE_ID="$SITE_ID"
-          netlify deploy \
-            --dir="$SRC_DIR" \
-            --prod \
-            --message="Deploy from GitHub Actions — commit ${{ github.sha }}" \
-            --json 2>&1 | tee /tmp/netlify_output.json || true
-
-          # Extract deploy URL from CLI output
-          DEPLOY_URL=$(python3 -c "
-import sys, json
-try:
-    with open('/tmp/netlify_output.json') as f:
-        content = f.read()
-    # CLI outputs multiple JSON objects sometimes, get last one
-    lines = [l.strip() for l in content.strip().split('\n') if l.strip().startswith('{')]
-    if lines:
-        d = json.loads(lines[-1])
-        print(d.get('deploy_url') or d.get('url') or 'https://${SITE_NAME}.netlify.app')
-    else:
-        print('https://${SITE_NAME}.netlify.app')
-except:
-    print('https://${SITE_NAME}.netlify.app')
-" 2>/dev/null) || DEPLOY_URL="https://${SITE_NAME}.netlify.app"
-
-          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-          echo "site_id=$SITE_ID" >> $GITHUB_OUTPUT
-          echo "Live at: $DEPLOY_URL"
-
-  notify:
-    needs: [detect, deploy-netlify]
-    if: always() && needs.detect.outputs.client_slug != ''
-    runs-on: ubuntu-latest
-    steps:
-      - name: Ping Activepieces — trigger sales pipeline
+      - name: Ping Activepieces
+        if: steps.detect.outputs.skip != 'true' && secrets.AP_WEBHOOK_URL != ''
+        env:
+          AP_URL: ${{ secrets.AP_WEBHOOK_URL }}
+          SLUG: ${{ steps.detect.outputs.slug }}
+          SITE: ${{ steps.detect.outputs.site }}
         run: |
-          LIVE_URL="${{ needs.detect.outputs.netlify_url }}"
-          SLUG="${{ needs.detect.outputs.client_slug }}"
-
-          if [ -z "${{ secrets.AP_WEBHOOK_URL }}" ]; then
-            echo "AP_WEBHOOK_URL not set — skipping Activepieces ping."
-            echo "Add it at: https://github.com/nakad-pixel/nexus-client-pages/settings/secrets/actions"
+          if [ -z "$AP_URL" ]; then
+            echo "AP_WEBHOOK_URL not set, skipping."
             exit 0
           fi
-
-          HTTP=$(curl -s -o /tmp/ap_resp.txt -w "%{http_code}" \
-            -X POST "${{ secrets.AP_WEBHOOK_URL }}" \
-            -H "Content-Type: application/json" \
-            -d "{\"event\":\"client_deployed\",\"business_name\":\"${SLUG}\",\"live_url\":\"${LIVE_URL}\",\"niche\":\"${{ needs.detect.outputs.niche }}\",\"repo\":\"${{ github.repository }}\",\"commit_sha\":\"${{ github.sha }}\"}")
-
-          echo "Activepieces HTTP: $HTTP"
-          cat /tmp/ap_resp.txt || true
+          curl -s -X POST "$AP_URL"             -H "Content-Type: application/json"             -d "{"event":"client_deployed","slug":"$SLUG","url":"https://$SITE.netlify.app","commit":"${{ github.sha }}"}"
