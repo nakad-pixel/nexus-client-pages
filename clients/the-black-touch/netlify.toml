@@ -17,3 +17,4 @@
     Cache-Control          = "public, max-age=3600"
 
 # deploy trigger v5 — Netlify CLI deploy, GitHub-linked
+# deploy-trigger: v6-final
