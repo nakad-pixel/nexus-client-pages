@@ -1,67 +1,70 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Usage: ./scripts/deploy.sh <client_slug> <netlify_token>
-# Called by GitHub Actions deploy.yml
+SLUG="${1:?slug required}"
+NETLIFY_TOKEN="${2:?token required}"
 
-SLUG="$1"
-NETLIFY_TOKEN="$2"
 SRC_DIR="clients/${SLUG}"
 SITE_NAME="nexus-${SLUG}"
+LIVE_URL="https://${SITE_NAME}.netlify.app"
 
-echo "=== Nexus Deploy: $SLUG ==="
-echo "Source: $SRC_DIR"
-echo "Target site: $SITE_NAME"
+echo "=== Nexus Deploy: ${SLUG} ==="
+echo "Source : ${SRC_DIR}"
+echo "Site   : ${SITE_NAME}"
 
-# Validate
-if [ ! -d "$SRC_DIR" ]; then
-  echo "ERROR: directory $SRC_DIR not found"
+# Validate source
+if [ ! -f "${SRC_DIR}/index.html" ]; then
+  echo "ERROR: ${SRC_DIR}/index.html not found"
   exit 1
 fi
-if [ ! -f "$SRC_DIR/index.html" ]; then
-  echo "ERROR: $SRC_DIR/index.html missing"
-  exit 1
-fi
-echo "index.html OK ($(wc -c < "$SRC_DIR/index.html") bytes)"
+echo "index.html OK ($(wc -c < "${SRC_DIR}/index.html") bytes)"
 
-# Find or create Netlify site
-echo "Looking up site $SITE_NAME..."
-ALL_SITES=$(curl -sf \
-  -H "Authorization: Bearer $NETLIFY_TOKEN" \
-  "https://api.netlify.com/api/v1/sites?filter=all&per_page=100")
+# Fetch all sites and extract matching ID using python with -c one-liner
+echo "Looking up Netlify site..."
+SITES_FILE=$(mktemp)
+curl -sf \
+  -H "Authorization: Bearer ${NETLIFY_TOKEN}" \
+  "https://api.netlify.com/api/v1/sites?filter=all&per_page=100" \
+  -o "${SITES_FILE}"
 
-SITE_ID=$(echo "$ALL_SITES" | python3 - "$SITE_NAME" <<'PYEOF'
-import json, sys
-sites = json.load(sys.stdin)
-name = sys.argv[1]
-match = [s["id"] for s in sites if s.get("name") == name]
-print(match[0] if match else "")
-PYEOF
-)
+SITE_ID=$(python3 -c "
+import json
+with open('${SITES_FILE}') as f:
+    sites = json.load(f)
+match = [s['id'] for s in sites if s.get('name') == '${SITE_NAME}']
+print(match[0] if match else '')
+")
+rm -f "${SITES_FILE}"
 
-if [ -z "$SITE_ID" ]; then
-  echo "Site not found — creating $SITE_NAME..."
-  CREATE_BODY='{"name":"'"$SITE_NAME"'"}'
-  SITE_ID=$(curl -sf \
+if [ -z "${SITE_ID}" ]; then
+  echo "Creating new site: ${SITE_NAME}"
+  RESP_FILE=$(mktemp)
+  curl -sf \
     -X POST "https://api.netlify.com/api/v1/sites" \
-    -H "Authorization: Bearer $NETLIFY_TOKEN" \
+    -H "Authorization: Bearer ${NETLIFY_TOKEN}" \
     -H "Content-Type: application/json" \
-    -d "$CREATE_BODY" \
-    | python3 -c "import json,sys; print(json.load(sys.stdin).get('id',''))")
-  echo "Created site — ID: $SITE_ID"
+    -d "{\"name\":\"${SITE_NAME}\"}" \
+    -o "${RESP_FILE}"
+  SITE_ID=$(python3 -c "import json; print(json.load(open('${RESP_FILE}')).get('id',''))")
+  rm -f "${RESP_FILE}"
+  echo "Created — ID: ${SITE_ID}"
 else
-  echo "Found site — ID: $SITE_ID"
+  echo "Found — ID: ${SITE_ID}"
+fi
+
+if [ -z "${SITE_ID}" ]; then
+  echo "ERROR: Could not get or create Netlify site"
+  exit 1
 fi
 
 # Deploy via Netlify CLI
-export NETLIFY_AUTH_TOKEN="$NETLIFY_TOKEN"
-export NETLIFY_SITE_ID="$SITE_ID"
+export NETLIFY_AUTH_TOKEN="${NETLIFY_TOKEN}"
+export NETLIFY_SITE_ID="${SITE_ID}"
 
 echo "Deploying via Netlify CLI..."
 netlify deploy \
-  --dir="$SRC_DIR" \
+  --dir="${SRC_DIR}" \
   --prod \
   --message="GitHub Actions deploy"
 
-echo "=== Deploy complete ==="
-echo "Live URL: https://${SITE_NAME}.netlify.app"
+echo "=== Done — Live: ${LIVE_URL} ==="
