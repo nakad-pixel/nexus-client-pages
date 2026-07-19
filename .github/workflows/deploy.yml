@@ -65,16 +65,8 @@ jobs:
           LIVE_URL="https://nexus-${SLUG}.netlify.app"
           META_FILE="clients/${SLUG}/lead-meta.json"
           if [ -f "$META_FILE" ]; then
-            PAYLOAD=$(python3 -c "
-import json
-with open('${META_FILE}') as f:
-    meta = json.load(f)
-meta['event'] = 'client_deployed'
-meta['slug'] = '${SLUG}'
-meta['live_url'] = '${LIVE_URL}'
-print(json.dumps(meta))
-")
+            PAYLOAD=$(jq -c --arg slug "$SLUG" --arg live_url "$LIVE_URL" '. + {event:"client_deployed", slug:$slug, live_url:$live_url}' "$META_FILE")
           else
-            PAYLOAD=$(printf '{\"event\":\"client_deployed\",\"slug\":\"%s\",\"live_url\":\"%s\"}' "$SLUG" "$LIVE_URL")
+            PAYLOAD=$(jq -n -c --arg slug "$SLUG" --arg live_url "$LIVE_URL" '{event:"client_deployed", slug:$slug, live_url:$live_url}')
           fi
           curl -sf -X POST "$AP_WEBHOOK_URL" -H "Content-Type: application/json" -d "$PAYLOAD" || true
