@@ -15,58 +15,87 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  detect:
     runs-on: ubuntu-latest
+    outputs:
+      slugs: ${{ steps.detect.outputs.slugs }}
+      skip: ${{ steps.detect.outputs.skip }}
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
-      - name: Detect changed client slug
+      - name: Detect changed client slugs
         id: detect
         shell: bash
         run: |
-          CHANGED=$(git diff --name-only HEAD~1 HEAD | grep "^clients/" | grep -v "_template" | head -1 || true)
+          CHANGED=$(git diff --name-only HEAD~1 HEAD | grep '^clients/' | grep -v '_template' || true)
           if [ -z "$CHANGED" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            SLUG=$(echo "$CHANGED" | awk -F/ '{print $2}')
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
+            echo "slugs=[]" >> "$GITHUB_OUTPUT"
+            echo "No client files changed — nothing to deploy."
+            exit 0
           fi
+          SLUGS=$(echo "$CHANGED" | awk -F/ '{print $2}' | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "slugs=$SLUGS" >> "$GITHUB_OUTPUT"
+          echo "Detected client slugs: $SLUGS"
+
+  deploy:
+    needs: detect
+    if: needs.detect.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        slug: ${{ fromJson(needs.detect.outputs.slugs) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Install Netlify CLI
-        if: steps.detect.outputs.skip != 'true'
-        shell: bash
         run: npm install -g netlify-cli@17
 
       - name: Run deploy script
-        if: steps.detect.outputs.skip != 'true'
-        shell: bash
+        id: deploy
         env:
           NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
         run: |
           chmod +x scripts/deploy.sh
-          bash scripts/deploy.sh "${{ steps.detect.outputs.slug }}" "$NETLIFY_TOKEN"
+          bash scripts/deploy.sh "${{ matrix.slug }}" "$NETLIFY_TOKEN"
 
       - name: Ping Activepieces
-        if: steps.detect.outputs.skip != 'true'
-        shell: bash
         env:
           AP_WEBHOOK_URL: ${{ secrets.AP_WEBHOOK_URL }}
-          SLUG: ${{ steps.detect.outputs.slug }}
+          SLUG: ${{ matrix.slug }}
+          LIVE_URL: ${{ steps.deploy.outputs.live_url }}
         run: |
           if [ -z "$AP_WEBHOOK_URL" ]; then
-            echo "AP_WEBHOOK_URL not set, skipping."
+            echo "::warning::AP_WEBHOOK_URL secret not set — skipping Activepieces notification for $SLUG. The site is live but no pitch will be sent."
             exit 0
           fi
-          LIVE_URL="https://nexus-${SLUG}.netlify.app"
+          if [ -z "$LIVE_URL" ]; then
+            echo "::error::No live_url was produced by the deploy step for $SLUG — refusing to notify Activepieces with an empty URL."
+            exit 1
+          fi
+
           META_FILE="clients/${SLUG}/lead-meta.json"
           if [ -f "$META_FILE" ]; then
             PAYLOAD=$(jq -c --arg slug "$SLUG" --arg live_url "$LIVE_URL" '. + {event:"client_deployed", slug:$slug, live_url:$live_url}' "$META_FILE")
           else
+            echo "::warning::No lead-meta.json found for $SLUG — sending minimal payload (no phone/business context)."
             PAYLOAD=$(jq -n -c --arg slug "$SLUG" --arg live_url "$LIVE_URL" '{event:"client_deployed", slug:$slug, live_url:$live_url}')
           fi
-          curl -sf -X POST "$AP_WEBHOOK_URL" -H "Content-Type: application/json" -d "$PAYLOAD" || true
+
+          echo "Posting payload for $SLUG (phone redacted from logs):"
+          echo "$PAYLOAD" | jq 'if has("phone") then .phone = "[redacted]" else . end'
+
+          HTTP_CODE=$(curl -s -o /tmp/ap_response.txt -w "%{http_code}" -X POST "$AP_WEBHOOK_URL" -H "Content-Type: application/json" -d "$PAYLOAD")
+          echo "Activepieces responded: HTTP $HTTP_CODE"
+          cat /tmp/ap_response.txt || true
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::error::Activepieces webhook call failed for $SLUG (HTTP $HTTP_CODE) — the sales pipeline was NOT triggered. Site is live at $LIVE_URL but no pitch will go out automatically."
+            exit 1
+          fi

@@ -6,7 +6,7 @@ NETLIFY_TOKEN="${2:?token required}"
 
 SRC_DIR="clients/${SLUG}"
 SITE_NAME="nexus-${SLUG}"
-LIVE_URL="https://${SITE_NAME}.netlify.app"
+FALLBACK_URL="https://${SITE_NAME}.netlify.app"
 
 echo "=== Nexus Deploy: ${SLUG} ==="
 echo "Source : ${SRC_DIR}"
@@ -19,7 +19,7 @@ if [ ! -f "${SRC_DIR}/index.html" ]; then
 fi
 echo "index.html OK ($(wc -c < "${SRC_DIR}/index.html") bytes)"
 
-# Fetch all sites and extract matching ID using python with -c one-liner
+# Fetch all sites and extract matching ID
 echo "Looking up Netlify site..."
 SITES_FILE=$(mktemp)
 curl -sf \
@@ -57,14 +57,40 @@ if [ -z "${SITE_ID}" ]; then
   exit 1
 fi
 
-# Deploy via Netlify CLI
+# Deploy via Netlify CLI, capture the REAL deploy URL instead of guessing it
 export NETLIFY_AUTH_TOKEN="${NETLIFY_TOKEN}"
 export NETLIFY_SITE_ID="${SITE_ID}"
 
 echo "Deploying via Netlify CLI..."
+DEPLOY_JSON=$(mktemp)
 netlify deploy \
   --dir="${SRC_DIR}" \
   --prod \
-  --message="GitHub Actions deploy"
+  --message="GitHub Actions deploy" \
+  --json > "${DEPLOY_JSON}" || {
+    echo "ERROR: netlify deploy command failed"
+    cat "${DEPLOY_JSON}" || true
+    exit 1
+  }
 
-echo "=== Done — Live: ${LIVE_URL} ==="
+REAL_URL=$(python3 -c "
+import json
+try:
+    d = json.load(open('${DEPLOY_JSON}'))
+    print(d.get('deploy_url') or d.get('url') or d.get('site_url') or '')
+except Exception:
+    print('')
+")
+rm -f "${DEPLOY_JSON}"
+
+if [ -z "${REAL_URL}" ]; then
+  echo "WARNING: could not parse deploy URL from Netlify CLI JSON output — falling back to conventional URL pattern"
+  REAL_URL="${FALLBACK_URL}"
+fi
+
+# Expose to the calling GitHub Actions step
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  echo "live_url=${REAL_URL}" >> "${GITHUB_OUTPUT}"
+fi
+
+echo "=== Done — Live: ${REAL_URL} ==="
