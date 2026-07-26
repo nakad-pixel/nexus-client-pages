@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banjara Plus | Retail &amp; Wholesale Jewellery, Mumbai</title>
+<meta name="description" content="Banjara Plus — trusted retail and wholesale fine jewellery in Mumbai's Kalbadevi, serving thousands of happy customers.">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#d4af6a;
+    --champagne:#f0dfc0;
+    --ivory:#f7f3ec;
+    --deep:#0d0b09;
+    --charcoal:#161310;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter',sans-serif;background:var(--deep);color:var(--ivory);overflow-x:hidden;}
+  h1,h2,h3{font-family:'Cormorant Garamond',serif;}
+  canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;}
+
+  nav{position:fixed;top:0;left:0;width:100%;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:1.5rem 6%;background:linear-gradient(to bottom, rgba(13,11,9,0.9), transparent);}
+  .logo{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;letter-spacing:0.08em;color:var(--gold);}
+  .nav-cta{padding:0.6rem 1.4rem;border:1px solid var(--gold);border-radius:2px;color:var(--gold);text-decoration:none;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;transition:all .3s;}
+  .nav-cta:hover{background:var(--gold);color:var(--deep);}
+
+  .hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;}
+  .hero .eyebrow{color:var(--champagne);letter-spacing:0.3em;text-transform:uppercase;font-size:0.78rem;margin-bottom:1.2rem;}
+  .hero h1{font-size:clamp(2.2rem,6vw,4.6rem);font-weight:700;line-height:1.15;max-width:900px;background:linear-gradient(135deg,#fff,var(--gold) 55%,var(--champagne));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .hero p.sub{margin-top:1.5rem;font-size:1.1rem;color:#d9cdb8;max-width:560px;font-weight:300;}
+  .hero .rating{margin-top:1.2rem;font-size:0.9rem;color:var(--gold);letter-spacing:0.06em;}
+  .cta-row{margin-top:2.5rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+  .btn-primary,.btn-secondary{padding:0.9rem 2.2rem;border-radius:2px;font-size:0.9rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;transition:all .3s;}
+  .btn-primary{background:var(--gold);color:var(--deep);font-weight:600;}
+  .btn-primary:hover{background:var(--champagne);transform:translateY(-2px);}
+  .btn-secondary{border:1px solid rgba(247,243,236,0.4);color:var(--ivory);}
+  .btn-secondary:hover{border-color:var(--gold);color:var(--gold);}
+
+  section{position:relative;z-index:1;padding:6rem 6%;}
+  .section-head{text-align:center;max-width:700px;margin:0 auto 3.5rem;}
+  .section-head .eyebrow{color:var(--gold);letter-spacing:0.3em;text-transform:uppercase;font-size:0.75rem;margin-bottom:0.8rem;display:block;}
+  .section-head h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:600;}
+
+  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2rem;max-width:1100px;margin:0 auto;}
+  .feature{background:rgba(247,243,236,0.04);border:1px solid rgba(212,175,106,0.25);border-radius:6px;padding:2.5rem 2rem;backdrop-filter:blur(6px);transition:transform .3s, border-color .3s;}
+  .feature:hover{transform:translateY(-6px);border-color:var(--gold);}
+  .feature .icon{font-size:1.8rem;margin-bottom:1.2rem;}
+  .feature h3{font-size:1.3rem;margin-bottom:0.8rem;color:var(--ivory);}
+  .feature p{font-size:0.92rem;color:#c9bda6;line-height:1.6;font-weight:300;}
+
+  .testimonials{background:rgba(247,243,236,0.03);}
+  .quote{max-width:700px;margin:0 auto;text-align:center;}
+  .quote p{font-size:1.35rem;font-family:'Cormorant Garamond',serif;font-style:italic;color:#f2e8d6;line-height:1.6;}
+  .quote .who{margin-top:1.5rem;color:var(--gold);font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;}
+
+  .final-cta{text-align:center;background:linear-gradient(135deg, rgba(212,175,106,0.12), rgba(240,223,192,0.06));border-top:1px solid rgba(212,175,106,0.2);border-bottom:1px solid rgba(212,175,106,0.2);}
+  .final-cta h2{font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:1rem;}
+  .final-cta p{color:#d9cdb8;font-weight:300;max-width:500px;margin:0 auto 2rem;}
+
+  footer{position:relative;z-index:1;text-align:center;padding:2.5rem 6%;color:#8a7f6f;font-size:0.82rem;border-top:1px solid rgba(212,175,106,0.15);}
+  footer a{color:var(--gold);text-decoration:none;}
+
+  @media (max-width:600px){
+    nav{padding:1.2rem 5%;}
+    .logo{font-size:1.25rem;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<nav>
+  <div class="logo">Banjara Plus</div>
+  <a class="nav-cta" href="https://wa.me/919870434576?text=Hi%20Banjara%20Plus%2C%20I%27d%20like%20to%20know%20more%20about%20your%20collection." target="_blank" rel="noopener">Enquire</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Retail &amp; Wholesale Jewellery &middot; Kalbadevi, Mumbai</div>
+  <h1>Trusted by Thousands,<br>Crafted for You</h1>
+  <p class="sub">Banjara Plus brings retail and wholesale fine jewellery together under one roof &mdash; quality and value, at every scale.</p>
+  <div class="rating">&#9733; 4.8 &nbsp;&middot;&nbsp; Trusted by 952+ Customers</div>
+  <div class="cta-row">
+    <a class="btn-primary" href="https://wa.me/919870434576?text=Hi%20Banjara%20Plus%2C%20I%27d%20like%20to%20know%20more%20about%20your%20collection." target="_blank" rel="noopener">Book a Private Viewing</a>
+    <a class="btn-secondary" href="#features">Explore Collections</a>
+  </div>
+</section>
+
+<section id="features">
+  <div class="section-head">
+    <span class="eyebrow">Our Craft</span>
+    <h2>Fine Jewellery, Retail to Wholesale</h2>
+  </div>
+  <div class="features">
+    <div class="feature">
+      <div class="icon">&#128142;</div>
+      <h3>Retail Collections</h3>
+      <p>Everyday and occasion-ready gold and diamond pieces for individual customers and families.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#127974;</div>
+      <h3>Wholesale &amp; Bulk Orders</h3>
+      <p>Competitive wholesale pricing and volume orders for retailers and business partners.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#128274;</div>
+      <h3>952+ Trusted Reviews</h3>
+      <p>Decades of reputation in Mumbai's jewellery district, backed by hallmark-certified gold.</p>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials">
+  <div class="quote">
+    <p>"Banjara Plus has been our family's jeweller for years &mdash; the trust, the pricing, the quality, nothing compares."</p>
+    <div class="who">A Longtime Customer</div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <h2>Visit Our Showroom or Enquire Online</h2>
+  <p>Whether you're shopping for one piece or stocking a store, Banjara Plus has you covered.</p>
+  <a class="btn-primary" href="https://wa.me/919870434576?text=Hi%20Banjara%20Plus%2C%20I%27d%20like%20to%20know%20more%20about%20your%20collection." target="_blank" rel="noopener">Chat With Us on WhatsApp</a>
+</section>
+
+<footer>
+  &copy; 2026 Banjara Plus &middot; Retail &amp; Wholesale Jewellery &middot; Mumbai &middot; <a href="https://www.instagram.com/banjaraplus/" target="_blank" rel="noopener">Instagram</a>
+  <br>Prototype crafted by Nexus 3D Web Studio
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  var canvas = document.getElementById('bg');
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+  camera.position.z = 13;
+
+  var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  var ambient = new THREE.AmbientLight(0xffffff, 0.4);
+  scene.add(ambient);
+  var point = new THREE.PointLight(0xd4af6a, 1.6, 60);
+  point.position.set(6, 6, 10);
+  scene.add(point);
+  var point2 = new THREE.PointLight(0xf0dfc0, 1.0, 60);
+  point2.position.set(-7, -4, 8);
+  scene.add(point2);
+  var point3 = new THREE.PointLight(0xffffff, 0.6, 40);
+  point3.position.set(0, 8, 4);
+  scene.add(point3);
+
+  var group = new THREE.Group();
+  scene.add(group);
+
+  var torusMat = new THREE.MeshStandardMaterial({
+    color: 0xd4af6a,
+    metalness: 1.0,
+    roughness: 0.15,
+    envMapIntensity: 1.2
+  });
+  var TORUS_COUNT = 6;
+  var toruses = [];
+  for (var i = 0; i < TORUS_COUNT; i++) {
+    var r = 1.2 + Math.random() * 1.6;
+    var geo = new THREE.TorusGeometry(r, r * 0.12, 24, 64);
+    var mesh = new THREE.Mesh(geo, torusMat.clone());
+    mesh.material.color.setHSL(0.11 + Math.random()*0.03, 0.55, 0.55 + Math.random()*0.15);
+    mesh.position.set(
+      (Math.random() - 0.5) * 14,
+      (Math.random() - 0.5) * 8,
+      (Math.random() - 0.5) * 8 - 3
+    );
+    mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, 0);
+    mesh.userData.rotSpeedX = (Math.random() - 0.5) * 0.006;
+    mesh.userData.rotSpeedY = (Math.random() - 0.5) * 0.006;
+    mesh.userData.floatSpeed = 0.12 + Math.random() * 0.2;
+    mesh.userData.floatOffset = Math.random() * Math.PI * 2;
+    mesh.userData.baseY = mesh.position.y;
+    group.add(mesh);
+    toruses.push(mesh);
+  }
+
+  var sphereMat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    metalness: 0.9,
+    roughness: 0.05
+  });
+  var SPHERE_COUNT = 10;
+  var spheres = [];
+  for (var j = 0; j < SPHERE_COUNT; j++) {
+    var rad = 0.2 + Math.random() * 0.4;
+    var sgeo = new THREE.SphereGeometry(rad, 32, 32);
+    var smesh = new THREE.Mesh(sgeo, sphereMat.clone());
+    smesh.material.color.setHSL(0.13 + Math.random()*0.05, 0.4, 0.8);
+    smesh.position.set(
+      (Math.random() - 0.5) * 16,
+      (Math.random() - 0.5) * 9,
+      (Math.random() - 0.5) * 9 - 2
+    );
+    smesh.userData.floatSpeed = 0.2 + Math.random() * 0.3;
+    smesh.userData.floatOffset = Math.random() * Math.PI * 2;
+    smesh.userData.baseY = smesh.position.y;
+    group.add(smesh);
+    spheres.push(smesh);
+  }
+
+  var clock = new THREE.Clock();
+
+  function animate(){
+    requestAnimationFrame(animate);
+    var t = clock.getElapsedTime();
+    for (var i = 0; i < toruses.length; i++) {
+      var tm = toruses[i];
+      tm.rotation.x += tm.userData.rotSpeedX;
+      tm.rotation.y += tm.userData.rotSpeedY;
+      tm.position.y = tm.userData.baseY + Math.sin(t * tm.userData.floatSpeed + tm.userData.floatOffset) * 0.5;
+    }
+    for (var k = 0; k < spheres.length; k++) {
+      var sm = spheres[k];
+      sm.position.y = sm.userData.baseY + Math.sin(t * sm.userData.floatSpeed + sm.userData.floatOffset) * 0.7;
+    }
+    group.rotation.y = Math.sin(t * 0.04) * 0.1;
+    point.position.x = 6 * Math.cos(t * 0.15);
+    point.position.z = 10 + 4 * Math.sin(t * 0.15);
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', function(){
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+</script>
+
+</body>
+</html>
