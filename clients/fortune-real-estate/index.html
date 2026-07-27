@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fortune Real Estate Agency | Mumbai Property Experts</title>
+<meta name="description" content="Fortune Real Estate Agency — trusted property advisory and brokerage in Mumbai, helping you find the right space with confidence.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#e0b559;
+    --blue:#3f6fb8;
+    --skyline:#1c2b45;
+    --ivory:#f5f2ea;
+    --deep:#0a0f1a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter',sans-serif;background:var(--deep);color:var(--ivory);overflow-x:hidden;}
+  h1,h2,h3{font-family:'Playfair Display',serif;}
+  canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;}
+
+  nav{position:fixed;top:0;left:0;width:100%;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:1.5rem 6%;background:linear-gradient(to bottom, rgba(10,15,26,0.9), transparent);}
+  .logo{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;letter-spacing:0.04em;color:var(--gold);}
+  .nav-cta{padding:0.6rem 1.4rem;border:1px solid var(--gold);border-radius:2px;color:var(--gold);text-decoration:none;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;transition:all .3s;}
+  .nav-cta:hover{background:var(--gold);color:var(--deep);}
+
+  .hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;}
+  .hero .eyebrow{color:var(--blue);letter-spacing:0.25em;text-transform:uppercase;font-size:0.8rem;margin-bottom:1.2rem;filter:brightness(1.6);}
+  .hero h1{font-size:clamp(2.2rem,6vw,4.5rem);font-weight:700;line-height:1.15;max-width:900px;background:linear-gradient(135deg,#fff,var(--gold) 55%,#a9c4e8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .hero p.sub{margin-top:1.5rem;font-size:1.1rem;color:#c9d3e4;max-width:560px;font-weight:300;}
+  .hero .rating{margin-top:1.2rem;font-size:0.9rem;color:var(--gold);letter-spacing:0.05em;}
+  .cta-row{margin-top:2.5rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+  .btn-primary,.btn-secondary{padding:0.9rem 2.2rem;border-radius:2px;font-size:0.9rem;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;transition:all .3s;}
+  .btn-primary{background:var(--gold);color:var(--deep);font-weight:600;}
+  .btn-primary:hover{background:#f0c877;transform:translateY(-2px);}
+  .btn-secondary{border:1px solid rgba(245,242,234,0.4);color:var(--ivory);}
+  .btn-secondary:hover{border-color:var(--gold);color:var(--gold);}
+
+  section{position:relative;z-index:1;padding:6rem 6%;}
+  .section-head{text-align:center;max-width:700px;margin:0 auto 3.5rem;}
+  .section-head .eyebrow{color:var(--gold);letter-spacing:0.25em;text-transform:uppercase;font-size:0.78rem;margin-bottom:0.8rem;display:block;}
+  .section-head h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:600;}
+
+  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2rem;max-width:1100px;margin:0 auto;}
+  .feature{background:rgba(245,242,234,0.04);border:1px solid rgba(224,181,89,0.25);border-radius:6px;padding:2.5rem 2rem;backdrop-filter:blur(6px);transition:transform .3s, border-color .3s;}
+  .feature:hover{transform:translateY(-6px);border-color:var(--gold);}
+  .feature .icon{font-size:1.8rem;margin-bottom:1.2rem;}
+  .feature h3{font-size:1.25rem;margin-bottom:0.8rem;color:var(--ivory);}
+  .feature p{font-size:0.92rem;color:#b7c0d1;line-height:1.6;font-weight:300;}
+
+  .testimonials{background:rgba(245,242,234,0.03);}
+  .quote{max-width:700px;margin:0 auto;text-align:center;}
+  .quote p{font-size:1.3rem;font-family:'Playfair Display',serif;font-style:italic;color:#eef1f8;line-height:1.6;}
+  .quote .who{margin-top:1.5rem;color:var(--gold);font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;}
+
+  .final-cta{text-align:center;background:linear-gradient(135deg, rgba(224,181,89,0.12), rgba(63,111,184,0.1));border-top:1px solid rgba(224,181,89,0.2);border-bottom:1px solid rgba(224,181,89,0.2);}
+  .final-cta h2{font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:1rem;}
+  .final-cta p{color:#c9d3e4;font-weight:300;max-width:500px;margin:0 auto 2rem;}
+
+  footer{position:relative;z-index:1;text-align:center;padding:2.5rem 6%;color:#7c869c;font-size:0.82rem;border-top:1px solid rgba(224,181,89,0.15);}
+  footer a{color:var(--gold);text-decoration:none;}
+
+  @media (max-width:600px){
+    nav{padding:1.2rem 5%;}
+    .logo{font-size:1.2rem;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<nav>
+  <div class="logo">Fortune Real Estate</div>
+  <a class="nav-cta" href="https://wa.me/919892602882?text=Hi%20Fortune%20Real%20Estate%2C%20I%27m%20looking%20for%20a%20property%20in%20Mumbai." target="_blank" rel="noopener">Enquire</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Property Advisory &amp; Brokerage &middot; Mumbai</div>
+  <h1>Find the Space Where<br>Your Story Begins</h1>
+  <p class="sub">Fortune Real Estate Agency helps you buy, sell, and rent across Mumbai &mdash; with honest advice and deep local expertise.</p>
+  <div class="rating">&#9733; 4.9 &nbsp;&middot;&nbsp; Trusted by 360+ Clients</div>
+  <div class="cta-row">
+    <a class="btn-primary" href="https://wa.me/919892602882?text=Hi%20Fortune%20Real%20Estate%2C%20I%27m%20looking%20for%20a%20property%20in%20Mumbai." target="_blank" rel="noopener">Speak to an Advisor</a>
+    <a class="btn-secondary" href="#features">Explore Services</a>
+  </div>
+</section>
+
+<section id="features">
+  <div class="section-head">
+    <span class="eyebrow">What We Do</span>
+    <h2>Mumbai Real Estate, Made Simple</h2>
+  </div>
+  <div class="features">
+    <div class="feature">
+      <div class="icon">&#127968;</div>
+      <h3>Buy &amp; Sell Property</h3>
+      <p>Residential and commercial listings across Mumbai, matched to your budget and needs.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#128188;</div>
+      <h3>Rentals &amp; Leasing</h3>
+      <p>Fast, reliable rental support for tenants and landlords across the city.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#128274;</div>
+      <h3>Trusted Local Expertise</h3>
+      <p>Decades of on-ground knowledge in Lower Parel and across Mumbai's neighbourhoods.</p>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials">
+  <div class="quote">
+    <p>"Fortune Real Estate found us the perfect flat in half the time we expected &mdash; honest, responsive, and thorough."</p>
+    <div class="who">A Recent Client</div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <h2>Let's Find Your Next Property</h2>
+  <p>Whether you're buying, selling, or renting, Fortune Real Estate Agency is with you every step of the way.</p>
+  <a class="btn-primary" href="https://wa.me/919892602882?text=Hi%20Fortune%20Real%20Estate%2C%20I%27m%20looking%20for%20a%20property%20in%20Mumbai." target="_blank" rel="noopener">Chat With Us on WhatsApp</a>
+</section>
+
+<footer>
+  &copy; 2026 Fortune Real Estate Agency &middot; Property Advisory &middot; Mumbai
+  <br>Prototype crafted by Nexus 3D Web Studio
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  var canvas = document.getElementById('bg');
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 200);
+  camera.position.set(0, 6, 22);
+  camera.lookAt(0, 4, 0);
+
+  var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  var ambient = new THREE.AmbientLight(0x3f6fb8, 0.5);
+  scene.add(ambient);
+  var moon = new THREE.PointLight(0xe0b559, 1.2, 80);
+  moon.position.set(-10, 20, 10);
+  scene.add(moon);
+  var blueLight = new THREE.PointLight(0x3f6fb8, 0.9, 80);
+  blueLight.position.set(12, 8, 15);
+  scene.add(blueLight);
+
+  // Starfield
+  var starGeo = new THREE.BufferGeometry();
+  var STAR_COUNT = 800;
+  var starPositions = new Float32Array(STAR_COUNT * 3);
+  for (var s = 0; s < STAR_COUNT; s++) {
+    starPositions[s*3] = (Math.random() - 0.5) * 120;
+    starPositions[s*3+1] = Math.random() * 60 + 5;
+    starPositions[s*3+2] = (Math.random() - 0.5) * 120 - 20;
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+  var starMat = new THREE.PointsMaterial({color: 0xffffff, size: 0.35, transparent:true, opacity:0.8});
+  var stars = new THREE.Points(starGeo, starMat);
+  scene.add(stars);
+
+  // City towers made of boxes
+  var group = new THREE.Group();
+  scene.add(group);
+  var TOWER_COUNT = 34;
+  var towers = [];
+  var colors = [0x3f6fb8, 0x1c2b45, 0x274166, 0xe0b559];
+  for (var i = 0; i < TOWER_COUNT; i++) {
+    var w = 0.8 + Math.random() * 1.4;
+    var h = 2 + Math.random() * 9;
+    var d = 0.8 + Math.random() * 1.4;
+    var geo = new THREE.BoxGeometry(w, h, d);
+    var mat = new THREE.MeshStandardMaterial({
+      color: colors[Math.floor(Math.random()*colors.length)],
+      metalness: 0.4,
+      roughness: 0.5,
+      emissive: 0x0d1a2e,
+      emissiveIntensity: 0.3
+    });
+    var mesh = new THREE.Mesh(geo, mat);
+    var x = (Math.random() - 0.5) * 34;
+    var z = (Math.random() - 0.5) * 24 - 8;
+    mesh.position.set(x, h/2 - 1, z);
+    group.add(mesh);
+    towers.push(mesh);
+
+    // window lights (small emissive dots on the tower face)
+    if (Math.random() > 0.4) {
+      var winGeo = new THREE.BoxGeometry(0.08, 0.08, 0.02);
+      var winMat = new THREE.MeshBasicMaterial({color: 0xe0b559});
+      var winRows = Math.floor(h * 1.4);
+      for (var wr = 0; wr < winRows; wr += 2) {
+        if (Math.random() > 0.5) continue;
+        var win = new THREE.Mesh(winGeo, winMat);
+        win.position.set(x + (Math.random()-0.5)*w*0.6, (wr*0.7) - 1, z + d/2 + 0.02);
+        group.add(win);
+      }
+    }
+  }
+
+  var clock = new THREE.Clock();
+
+  function animate(){
+    requestAnimationFrame(animate);
+    var t = clock.getElapsedTime();
+    group.rotation.y = Math.sin(t * 0.03) * 0.15;
+    stars.rotation.y = t * 0.005;
+    moon.position.x = -10 + Math.sin(t*0.05) * 3;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', function(){
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+</script>
+
+</body>
+</html>
