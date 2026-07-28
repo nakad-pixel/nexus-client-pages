@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lotekar Realtors | Real Estate Experts, Mumbai</title>
+<meta name="description" content="Lotekar Realtors Pvt. Ltd. — trusted real estate experts in Kandivali, Mumbai, helping you find the right property.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#4f8ef7;
+    --gold:#e0b45c;
+    --ivory:#f4f6fa;
+    --deep:#070b16;
+    --midnight:#0d1526;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter',sans-serif;background:var(--deep);color:var(--ivory);overflow-x:hidden;}
+  h1,h2,h3{font-family:'Playfair Display',serif;}
+  canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;}
+
+  nav{position:fixed;top:0;left:0;width:100%;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:1.5rem 6%;background:linear-gradient(to bottom, rgba(7,11,22,0.9), transparent);}
+  .logo{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;letter-spacing:0.04em;color:var(--gold);}
+  .nav-cta{padding:0.6rem 1.4rem;border:1px solid var(--gold);border-radius:2px;color:var(--gold);text-decoration:none;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;transition:all .3s;}
+  .nav-cta:hover{background:var(--gold);color:var(--deep);}
+
+  .hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;}
+  .hero .eyebrow{color:var(--blue);letter-spacing:0.25em;text-transform:uppercase;font-size:0.8rem;margin-bottom:1.2rem;}
+  .hero h1{font-size:clamp(2.2rem,6vw,4.4rem);font-weight:700;line-height:1.15;max-width:900px;background:linear-gradient(135deg,#fff,var(--gold) 55%,var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .hero p.sub{margin-top:1.5rem;font-size:1.1rem;color:#c7cee0;max-width:560px;font-weight:300;}
+  .hero .rating{margin-top:1.2rem;font-size:0.9rem;color:var(--gold);letter-spacing:0.05em;}
+  .cta-row{margin-top:2.5rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+  .btn-primary,.btn-secondary{padding:0.9rem 2.2rem;border-radius:2px;font-size:0.9rem;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;transition:all .3s;}
+  .btn-primary{background:var(--gold);color:var(--deep);font-weight:600;}
+  .btn-primary:hover{background:#f0c976;transform:translateY(-2px);}
+  .btn-secondary{border:1px solid rgba(244,246,250,0.4);color:var(--ivory);}
+  .btn-secondary:hover{border-color:var(--blue);color:var(--blue);}
+
+  section{position:relative;z-index:1;padding:6rem 6%;}
+  .section-head{text-align:center;max-width:700px;margin:0 auto 3.5rem;}
+  .section-head .eyebrow{color:var(--gold);letter-spacing:0.25em;text-transform:uppercase;font-size:0.78rem;margin-bottom:0.8rem;display:block;}
+  .section-head h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:600;}
+
+  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2rem;max-width:1100px;margin:0 auto;}
+  .feature{background:rgba(244,246,250,0.04);border:1px solid rgba(79,142,247,0.25);border-radius:6px;padding:2.5rem 2rem;backdrop-filter:blur(6px);transition:transform .3s, border-color .3s;}
+  .feature:hover{transform:translateY(-6px);border-color:var(--gold);}
+  .feature .icon{font-size:1.8rem;margin-bottom:1.2rem;}
+  .feature h3{font-size:1.25rem;margin-bottom:0.8rem;color:var(--ivory);}
+  .feature p{font-size:0.92rem;color:#adb8ce;line-height:1.6;font-weight:300;}
+
+  .testimonials{background:rgba(244,246,250,0.03);}
+  .quote{max-width:700px;margin:0 auto;text-align:center;}
+  .quote p{font-size:1.3rem;font-family:'Playfair Display',serif;font-style:italic;color:#eef1f8;line-height:1.6;}
+  .quote .who{margin-top:1.5rem;color:var(--gold);font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;}
+
+  .final-cta{text-align:center;background:linear-gradient(135deg, rgba(79,142,247,0.12), rgba(224,180,92,0.06));border-top:1px solid rgba(79,142,247,0.2);border-bottom:1px solid rgba(79,142,247,0.2);}
+  .final-cta h2{font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:1rem;}
+  .final-cta p{color:#c7cee0;font-weight:300;max-width:500px;margin:0 auto 2rem;}
+
+  footer{position:relative;z-index:1;text-align:center;padding:2.5rem 6%;color:#6d768c;font-size:0.82rem;border-top:1px solid rgba(79,142,247,0.15);}
+  footer a{color:var(--gold);text-decoration:none;}
+
+  @media (max-width:600px){
+    nav{padding:1.2rem 5%;}
+    .logo{font-size:1.15rem;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<nav>
+  <div class="logo">Lotekar Realtors</div>
+  <a class="nav-cta" href="https://wa.me/919967063548?text=Hi%20Lotekar%20Realtors%2C%20I%27m%20looking%20for%20a%20property%20in%20Mumbai." target="_blank" rel="noopener">Enquire</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Real Estate Experts &middot; Kandivali, Mumbai</div>
+  <h1>Find the Space Where<br>Your Story Begins</h1>
+  <p class="sub">Lotekar Realtors Pvt. Ltd. helps you buy, sell, and rent property across Mumbai &mdash; with expert guidance at every step.</p>
+  <div class="rating">&#9733; 4.9 &nbsp;&middot;&nbsp; Trusted by 230+ Clients</div>
+  <div class="cta-row">
+    <a class="btn-primary" href="https://wa.me/919967063548?text=Hi%20Lotekar%20Realtors%2C%20I%27m%20looking%20for%20a%20property%20in%20Mumbai." target="_blank" rel="noopener">Talk to an Expert</a>
+    <a class="btn-secondary" href="#features">Explore Services</a>
+  </div>
+</section>
+
+<section id="features">
+  <div class="section-head">
+    <span class="eyebrow">What We Do</span>
+    <h2>Real Estate, Made Simple</h2>
+  </div>
+  <div class="features">
+    <div class="feature">
+      <div class="icon">&#127968;</div>
+      <h3>Buy &amp; Sell Property</h3>
+      <p>Residential and commercial listings across Mumbai, matched to your exact needs and budget.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#128273;</div>
+      <h3>Rentals &amp; Leasing</h3>
+      <p>Fast, hassle-free rental solutions for tenants and landlords alike.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#128203;</div>
+      <h3>Expert Advisory</h3>
+      <p>End-to-end support on paperwork, negotiation, and market insight &mdash; from search to sign-off.</p>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials">
+  <div class="quote">
+    <p>"Lotekar Realtors made buying our first home stress-free. Honest advice, no pressure, and they found exactly what we wanted."</p>
+    <div class="who">A Satisfied Client</div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <h2>Let's Find Your Next Property</h2>
+  <p>Whether you're buying, selling, or renting &mdash; Lotekar Realtors is with you every step of the way.</p>
+  <a class="btn-primary" href="https://wa.me/919967063548?text=Hi%20Lotekar%20Realtors%2C%20I%27m%20looking%20for%20a%20property%20in%20Mumbai." target="_blank" rel="noopener">Chat With Us on WhatsApp</a>
+</section>
+
+<footer>
+  &copy; 2026 Lotekar Realtors Pvt. Ltd. &middot; Real Estate Experts &middot; Kandivali, Mumbai
+  <br>Prototype crafted by Nexus 3D Web Studio
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  var canvas = document.getElementById('bg');
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 200);
+  camera.position.set(0, 8, 30);
+  camera.lookAt(0, 6, 0);
+
+  var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  var ambient = new THREE.AmbientLight(0x304060, 0.6);
+  scene.add(ambient);
+  var moon = new THREE.PointLight(0xe0b45c, 1.2, 100);
+  moon.position.set(20, 30, -10);
+  scene.add(moon);
+  var glow = new THREE.PointLight(0x4f8ef7, 1.0, 80);
+  glow.position.set(-15, 15, 10);
+  scene.add(glow);
+
+  // Star field
+  var starGeo = new THREE.BufferGeometry();
+  var STAR_COUNT = 600;
+  var starPositions = new Float32Array(STAR_COUNT * 3);
+  for (var s = 0; s < STAR_COUNT; s++) {
+    starPositions[s*3] = (Math.random() - 0.5) * 120;
+    starPositions[s*3+1] = Math.random() * 60 + 5;
+    starPositions[s*3+2] = (Math.random() - 0.5) * 100 - 20;
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+  var starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.35, transparent: true, opacity: 0.7 });
+  var stars = new THREE.Points(starGeo, starMat);
+  scene.add(stars);
+
+  // Cityscape towers
+  var buildingsGroup = new THREE.Group();
+  scene.add(buildingsGroup);
+  var TOWER_COUNT = 45;
+  var towers = [];
+  var colorsArr = [0x4f8ef7, 0xe0b45c, 0x2a3a5c];
+  for (var i = 0; i < TOWER_COUNT; i++) {
+    var w = 0.8 + Math.random() * 1.6;
+    var d = 0.8 + Math.random() * 1.6;
+    var h = 2 + Math.random() * 12;
+    var geo = new THREE.BoxGeometry(w, h, d);
+    var mat = new THREE.MeshStandardMaterial({
+      color: 0x0d1526,
+      emissive: colorsArr[i % colorsArr.length],
+      emissiveIntensity: 0.15 + Math.random() * 0.25,
+      metalness: 0.3,
+      roughness: 0.6
+    });
+    var tower = new THREE.Mesh(geo, mat);
+    var x = (Math.random() - 0.5) * 50;
+    var z = -10 - Math.random() * 40;
+    tower.position.set(x, h / 2 - 4, z);
+    tower.userData.baseEmissive = mat.emissiveIntensity;
+    tower.userData.flickerSpeed = 0.3 + Math.random() * 0.6;
+    tower.userData.flickerOffset = Math.random() * Math.PI * 2;
+    buildingsGroup.add(tower);
+    towers.push(tower);
+  }
+
+  var clock = new THREE.Clock();
+
+  function animate(){
+    requestAnimationFrame(animate);
+    var t = clock.getElapsedTime();
+    for (var i = 0; i < towers.length; i++) {
+      var tw = towers[i];
+      tw.material.emissiveIntensity = tw.userData.baseEmissive + Math.sin(t * tw.userData.flickerSpeed + tw.userData.flickerOffset) * 0.08;
+    }
+    buildingsGroup.rotation.y = Math.sin(t * 0.03) * 0.06;
+    stars.rotation.y += 0.0004;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', function(){
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+</script>
+
+</body>
+</html>
