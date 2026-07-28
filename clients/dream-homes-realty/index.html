@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dream Homes Realty | Real Estate in Mumbai</title>
+<meta name="description" content="Dream Homes Realty helps you find the perfect home or investment property across Mumbai.">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#4a7fb5;
+    --gold:#d4af6a;
+    --skyline:#1c2b3a;
+    --ivory:#f2f4f6;
+    --deep:#0a0e14;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter',sans-serif;background:var(--deep);color:var(--ivory);overflow-x:hidden;}
+  h1,h2,h3{font-family:'Playfair Display',serif;}
+  canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;}
+
+  nav{position:fixed;top:0;left:0;width:100%;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:1.5rem 6%;background:linear-gradient(to bottom, rgba(10,14,20,0.9), transparent);}
+  .logo{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;letter-spacing:0.04em;color:var(--gold);}
+  .nav-cta{padding:0.6rem 1.4rem;border:1px solid var(--gold);border-radius:2px;color:var(--gold);text-decoration:none;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;transition:all .3s;}
+  .nav-cta:hover{background:var(--gold);color:var(--deep);}
+
+  .hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;}
+  .hero .eyebrow{color:var(--blue);letter-spacing:0.25em;text-transform:uppercase;font-size:0.8rem;margin-bottom:1.2rem;}
+  .hero h1{font-size:clamp(2.2rem,6vw,4.4rem);font-weight:700;line-height:1.15;max-width:900px;background:linear-gradient(135deg,#fff,var(--gold) 55%,var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .hero p.sub{margin-top:1.5rem;font-size:1.1rem;color:#c6ccd4;max-width:560px;font-weight:300;}
+  .hero .rating{margin-top:1.2rem;font-size:0.9rem;color:var(--gold);letter-spacing:0.05em;}
+  .cta-row{margin-top:2.5rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+  .btn-primary,.btn-secondary{padding:0.9rem 2.2rem;border-radius:2px;font-size:0.9rem;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;transition:all .3s;}
+  .btn-primary{background:var(--gold);color:var(--deep);font-weight:600;}
+  .btn-primary:hover{background:#e2c58b;transform:translateY(-2px);}
+  .btn-secondary{border:1px solid rgba(242,244,246,0.4);color:var(--ivory);}
+  .btn-secondary:hover{border-color:var(--gold);color:var(--gold);}
+
+  section{position:relative;z-index:1;padding:6rem 6%;}
+  .section-head{text-align:center;max-width:700px;margin:0 auto 3.5rem;}
+  .section-head .eyebrow{color:var(--gold);letter-spacing:0.25em;text-transform:uppercase;font-size:0.78rem;margin-bottom:0.8rem;display:block;}
+  .section-head h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:600;}
+
+  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2rem;max-width:1100px;margin:0 auto;}
+  .feature{background:rgba(242,244,246,0.04);border:1px solid rgba(74,127,181,0.3);border-radius:6px;padding:2.5rem 2rem;backdrop-filter:blur(6px);transition:transform .3s, border-color .3s;}
+  .feature:hover{transform:translateY(-6px);border-color:var(--gold);}
+  .feature .icon{font-size:1.8rem;margin-bottom:1.2rem;}
+  .feature h3{font-size:1.25rem;margin-bottom:0.8rem;color:var(--ivory);}
+  .feature p{font-size:0.92rem;color:#adb6bf;line-height:1.6;font-weight:300;}
+
+  .testimonials{background:rgba(242,244,246,0.03);}
+  .quote{max-width:700px;margin:0 auto;text-align:center;}
+  .quote p{font-size:1.3rem;font-family:'Playfair Display',serif;font-style:italic;color:#e8ecef;line-height:1.6;}
+  .quote .who{margin-top:1.5rem;color:var(--gold);font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;}
+
+  .final-cta{text-align:center;background:linear-gradient(135deg, rgba(74,127,181,0.15), rgba(212,175,106,0.06));border-top:1px solid rgba(74,127,181,0.25);border-bottom:1px solid rgba(74,127,181,0.25);}
+  .final-cta h2{font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:1rem;}
+  .final-cta p{color:#c6ccd4;font-weight:300;max-width:500px;margin:0 auto 2rem;}
+
+  footer{position:relative;z-index:1;text-align:center;padding:2.5rem 6%;color:#6f7982;font-size:0.82rem;border-top:1px solid rgba(74,127,181,0.2);}
+  footer a{color:var(--gold);text-decoration:none;}
+
+  @media (max-width:600px){
+    nav{padding:1.2rem 5%;}
+    .logo{font-size:1.2rem;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<nav>
+  <div class="logo">Dream Homes Realty</div>
+  <a class="nav-cta" href="https://wa.me/919773759237?text=Hi%20Dream%20Homes%20Realty%2C%20I%27m%20looking%20for%20a%20property%20in%20Mumbai." target="_blank" rel="noopener">Enquire</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Real Estate &middot; Mumbai</div>
+  <h1>Find the Space Where<br>Your Story Begins</h1>
+  <p class="sub">Dream Homes Realty helps you find, buy, rent, or invest in the right property across Mumbai &mdash; with honest guidance every step of the way.</p>
+  <div class="rating">&#9733; 4.9 &nbsp;&middot;&nbsp; Trusted by 51+ Clients</div>
+  <div class="cta-row">
+    <a class="btn-primary" href="https://wa.me/919773759237?text=Hi%20Dream%20Homes%20Realty%2C%20I%27m%20looking%20for%20a%20property%20in%20Mumbai." target="_blank" rel="noopener">Find Your Property</a>
+    <a class="btn-secondary" href="#features">Explore Services</a>
+  </div>
+</section>
+
+<section id="features">
+  <div class="section-head">
+    <span class="eyebrow">What We Do</span>
+    <h2>Real Estate, Handled Right</h2>
+  </div>
+  <div class="features">
+    <div class="feature">
+      <div class="icon">&#127968;</div>
+      <h3>Buy &amp; Sell</h3>
+      <p>End-to-end support for buying or selling residential and commercial property across Mumbai.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#128273;</div>
+      <h3>Rentals</h3>
+      <p>Curated rental listings matched to your budget, location, and lifestyle needs.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#128200;</div>
+      <h3>Investment Advisory</h3>
+      <p>Market insight and honest guidance to help you make confident property investment decisions.</p>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials">
+  <div class="quote">
+    <p>"Dream Homes Realty made finding our first home stress-free. Honest advice, no pressure, and they genuinely listened to what we needed."</p>
+    <div class="who">A Recent Homeowner</div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <h2>Let's Find Your Next Address</h2>
+  <p>Buying, selling, renting, or investing &mdash; tell us what you're looking for and we'll take it from there.</p>
+  <a class="btn-primary" href="https://wa.me/919773759237?text=Hi%20Dream%20Homes%20Realty%2C%20I%27m%20looking%20for%20a%20property%20in%20Mumbai." target="_blank" rel="noopener">Chat With Us on WhatsApp</a>
+</section>
+
+<footer>
+  &copy; 2026 Dream Homes Realty &middot; Real Estate &middot; Mumbai
+  <br>Prototype crafted by Nexus 3D Web Studio
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  var canvas = document.getElementById('bg');
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 200);
+  camera.position.set(0, 8, 34);
+  camera.lookAt(0, 6, 0);
+
+  var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  var ambient = new THREE.AmbientLight(0x4a7fb5, 0.35);
+  scene.add(ambient);
+  var moon = new THREE.PointLight(0xd4af6a, 1.4, 100);
+  moon.position.set(-10, 25, -10);
+  scene.add(moon);
+  var glow = new THREE.PointLight(0x4a7fb5, 1.0, 80);
+  glow.position.set(15, 10, 15);
+  scene.add(glow);
+
+  // Starfield
+  var starGeo = new THREE.BufferGeometry();
+  var STAR_COUNT = 800;
+  var starPositions = new Float32Array(STAR_COUNT * 3);
+  for (var s = 0; s < STAR_COUNT; s++) {
+    starPositions[s*3]     = (Math.random() - 0.5) * 140;
+    starPositions[s*3 + 1] = Math.random() * 60 + 5;
+    starPositions[s*3 + 2] = (Math.random() - 0.5) * 140 - 20;
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+  var starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.35, transparent: true, opacity: 0.8 });
+  var stars = new THREE.Points(starGeo, starMat);
+  scene.add(stars);
+
+  // City towers
+  var cityGroup = new THREE.Group();
+  scene.add(cityGroup);
+  var TOWER_COUNT = 40;
+  var towers = [];
+  var colors = [0x2a4157, 0x1c2b3a, 0x35526b];
+  for (var i = 0; i < TOWER_COUNT; i++) {
+    var w = 1 + Math.random() * 2;
+    var h = 3 + Math.random() * 16;
+    var d = 1 + Math.random() * 2;
+    var geo = new THREE.BoxGeometry(w, h, d);
+    var mat = new THREE.MeshStandardMaterial({
+      color: colors[i % colors.length],
+      metalness: 0.4,
+      roughness: 0.6,
+      emissive: 0x0,
+    });
+    var mesh = new THREE.Mesh(geo, mat);
+    var angleSpread = 40;
+    mesh.position.set(
+      (Math.random() - 0.5) * angleSpread,
+      h / 2 - 3,
+      -8 - Math.random() * 30
+    );
+    cityGroup.add(mesh);
+    towers.push(mesh);
+
+    // window lights on some towers
+    if (Math.random() > 0.4) {
+      var winGeo = new THREE.BoxGeometry(w * 1.02, h * 0.92, d * 1.02);
+      var winMat = new THREE.MeshBasicMaterial({
+        color: Math.random() > 0.5 ? 0xd4af6a : 0x4a7fb5,
+        transparent: true,
+        opacity: 0.12,
+        wireframe: true
+      });
+      var winMesh = new THREE.Mesh(winGeo, winMat);
+      winMesh.position.copy(mesh.position);
+      cityGroup.add(winMesh);
+    }
+  }
+
+  var clock = new THREE.Clock();
+
+  function animate(){
+    requestAnimationFrame(animate);
+    var t = clock.getElapsedTime();
+    cityGroup.rotation.y = Math.sin(t * 0.03) * 0.06;
+    stars.rotation.y += 0.0002;
+    moon.position.x = -10 + Math.sin(t * 0.05) * 4;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', function(){
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+</script>
+
+</body>
+</html>
