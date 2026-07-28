@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saifee Dental Clinic | Dental Care in Mumbai</title>
+<meta name="description" content="Saifee Dental Clinic — trusted family dental care in Mumbai, serving 769+ happy patients.">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#3a8fd6;
+    --skyblue:#a9d6f5;
+    --white:#f7fbff;
+    --deep:#0a1420;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter',sans-serif;background:var(--deep);color:var(--white);overflow-x:hidden;}
+  h1,h2,h3{font-family:'Poppins',sans-serif;}
+  canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;}
+
+  nav{position:fixed;top:0;left:0;width:100%;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:1.5rem 6%;background:linear-gradient(to bottom, rgba(10,20,32,0.9), transparent);}
+  .logo{font-family:'Poppins',sans-serif;font-size:1.4rem;font-weight:700;letter-spacing:0.02em;color:var(--blue);}
+  .nav-cta{padding:0.6rem 1.4rem;border:1px solid var(--blue);border-radius:2px;color:var(--skyblue);text-decoration:none;font-size:0.85rem;letter-spacing:0.06em;text-transform:uppercase;transition:all .3s;}
+  .nav-cta:hover{background:var(--blue);color:var(--white);}
+
+  .hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;}
+  .hero .eyebrow{color:var(--skyblue);letter-spacing:0.25em;text-transform:uppercase;font-size:0.8rem;margin-bottom:1.2rem;}
+  .hero h1{font-size:clamp(2.2rem,6vw,4.4rem);font-weight:700;line-height:1.15;max-width:900px;background:linear-gradient(135deg,#fff,var(--blue) 60%,var(--skyblue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .hero p.sub{margin-top:1.5rem;font-size:1.1rem;color:#c2d6e8;max-width:560px;font-weight:300;}
+  .hero .rating{margin-top:1.2rem;font-size:0.9rem;color:var(--blue);letter-spacing:0.05em;}
+  .cta-row{margin-top:2.5rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+  .btn-primary,.btn-secondary{padding:0.9rem 2.2rem;border-radius:2px;font-size:0.9rem;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;transition:all .3s;}
+  .btn-primary{background:var(--blue);color:var(--white);font-weight:600;}
+  .btn-primary:hover{background:#5aa3e0;transform:translateY(-2px);}
+  .btn-secondary{border:1px solid rgba(247,251,255,0.4);color:var(--white);}
+  .btn-secondary:hover{border-color:var(--blue);color:var(--blue);}
+
+  section{position:relative;z-index:1;padding:6rem 6%;}
+  .section-head{text-align:center;max-width:700px;margin:0 auto 3.5rem;}
+  .section-head .eyebrow{color:var(--blue);letter-spacing:0.25em;text-transform:uppercase;font-size:0.78rem;margin-bottom:0.8rem;display:block;}
+  .section-head h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:600;}
+
+  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2rem;max-width:1100px;margin:0 auto;}
+  .feature{background:rgba(247,251,255,0.04);border:1px solid rgba(58,143,214,0.3);border-radius:6px;padding:2.5rem 2rem;backdrop-filter:blur(6px);transition:transform .3s, border-color .3s;}
+  .feature:hover{transform:translateY(-6px);border-color:var(--blue);}
+  .feature .icon{font-size:1.8rem;margin-bottom:1.2rem;}
+  .feature h3{font-size:1.2rem;margin-bottom:0.8rem;color:var(--white);}
+  .feature p{font-size:0.92rem;color:#a9bccd;line-height:1.6;font-weight:300;}
+
+  .testimonials{background:rgba(247,251,255,0.03);}
+  .quote{max-width:700px;margin:0 auto;text-align:center;}
+  .quote p{font-size:1.3rem;font-family:'Poppins',sans-serif;font-style:italic;color:#e4f0fa;line-height:1.6;}
+  .quote .who{margin-top:1.5rem;color:var(--blue);font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;}
+
+  .final-cta{text-align:center;background:linear-gradient(135deg, rgba(58,143,214,0.15), rgba(169,214,245,0.06));border-top:1px solid rgba(58,143,214,0.25);border-bottom:1px solid rgba(58,143,214,0.25);}
+  .final-cta h2{font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:1rem;}
+  .final-cta p{color:#c2d6e8;font-weight:300;max-width:500px;margin:0 auto 2rem;}
+
+  footer{position:relative;z-index:1;text-align:center;padding:2.5rem 6%;color:#6f8598;font-size:0.82rem;border-top:1px solid rgba(58,143,214,0.2);}
+  footer a{color:var(--blue);text-decoration:none;}
+
+  @media (max-width:600px){
+    nav{padding:1.2rem 5%;}
+    .logo{font-size:1.15rem;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<nav>
+  <div class="logo">Saifee Dental Clinic</div>
+  <a class="nav-cta" href="https://wa.me/919870132176?text=Hi%20Saifee%20Dental%20Clinic%2C%20I%27d%20like%20to%20book%20an%20appointment." target="_blank" rel="noopener">Book Now</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Dental Care &middot; Mumbai</div>
+  <h1>Your Healthiest<br>Smile Starts Here</h1>
+  <p class="sub">Saifee Dental Clinic delivers gentle, modern dental care for the whole family, right in the heart of Mumbai.</p>
+  <div class="rating">&#9733; 4.9 &nbsp;&middot;&nbsp; Trusted by 769+ Patients</div>
+  <div class="cta-row">
+    <a class="btn-primary" href="https://wa.me/919870132176?text=Hi%20Saifee%20Dental%20Clinic%2C%20I%27d%20like%20to%20book%20an%20appointment." target="_blank" rel="noopener">Book Your Appointment</a>
+    <a class="btn-secondary" href="#features">Explore Services</a>
+  </div>
+</section>
+
+<section id="features">
+  <div class="section-head">
+    <span class="eyebrow">What We Do</span>
+    <h2>Complete Dental Care, One Roof</h2>
+  </div>
+  <div class="features">
+    <div class="feature">
+      <div class="icon">&#129688;</div>
+      <h3>Preventive &amp; General Dentistry</h3>
+      <p>Routine checkups, cleanings, and early detection to keep your smile healthy year-round.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#10024;</div>
+      <h3>Cosmetic &amp; Restorative Care</h3>
+      <p>From whitening to crowns and implants, treatments designed for both health and confidence.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#128100;</div>
+      <h3>Gentle, Family-Friendly Approach</h3>
+      <p>A calm, welcoming clinic experience for patients of every age, backed by 769+ five-star reviews.</p>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials">
+  <div class="quote">
+    <p>"Dr. Saifee's team made a nervous first-time patient feel completely at ease. Painless, professional, and genuinely caring."</p>
+    <div class="who">A Recent Patient</div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <h2>Book Your Visit Today</h2>
+  <p>Whether it's a routine cleaning or a bigger concern, we're here to take care of your smile.</p>
+  <a class="btn-primary" href="https://wa.me/919870132176?text=Hi%20Saifee%20Dental%20Clinic%2C%20I%27d%20like%20to%20book%20an%20appointment." target="_blank" rel="noopener">Chat With Us on WhatsApp</a>
+</section>
+
+<footer>
+  &copy; 2026 Saifee Dental Clinic &middot; Dental Care &middot; Mumbai
+  <br>Prototype crafted by Nexus 3D Web Studio
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  var canvas = document.getElementById('bg');
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+  camera.position.z = 16;
+
+  var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  var PARTICLE_COUNT = 1400;
+  var geometry = new THREE.BufferGeometry();
+  var positions = new Float32Array(PARTICLE_COUNT * 3);
+  var speeds = new Float32Array(PARTICLE_COUNT);
+
+  for (var i = 0; i < PARTICLE_COUNT; i++) {
+    positions[i*3]     = (Math.random() - 0.5) * 40;
+    positions[i*3 + 1] = (Math.random() - 0.5) * 24;
+    positions[i*3 + 2] = (Math.random() - 0.5) * 30 - 5;
+    speeds[i] = 0.05 + Math.random() * 0.15;
+  }
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  var material = new THREE.PointsMaterial({
+    color: 0xa9d6f5,
+    size: 0.12,
+    transparent: true,
+    opacity: 0.75,
+    sizeAttenuation: true
+  });
+
+  var particles = new THREE.Points(geometry, material);
+  scene.add(particles);
+
+  var whiteGeo = new THREE.BufferGeometry();
+  var WHITE_COUNT = 500;
+  var whitePositions = new Float32Array(WHITE_COUNT * 3);
+  for (var j = 0; j < WHITE_COUNT; j++) {
+    whitePositions[j*3]     = (Math.random() - 0.5) * 40;
+    whitePositions[j*3 + 1] = (Math.random() - 0.5) * 24;
+    whitePositions[j*3 + 2] = (Math.random() - 0.5) * 30 - 5;
+  }
+  whiteGeo.setAttribute('position', new THREE.BufferAttribute(whitePositions, 3));
+  var whiteMat = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.08,
+    transparent: true,
+    opacity: 0.5
+  });
+  var whiteParticles = new THREE.Points(whiteGeo, whiteMat);
+  scene.add(whiteParticles);
+
+  var ambient = new THREE.AmbientLight(0xffffff, 0.3);
+  scene.add(ambient);
+
+  var clock = new THREE.Clock();
+  var posAttr = geometry.attributes.position;
+
+  function animate(){
+    requestAnimationFrame(animate);
+    var t = clock.getElapsedTime();
+    for (var i = 0; i < PARTICLE_COUNT; i++) {
+      posAttr.array[i*3 + 1] += Math.sin(t * speeds[i] + i) * 0.003;
+    }
+    posAttr.needsUpdate = true;
+    particles.rotation.y = t * 0.015;
+    whiteParticles.rotation.y = -t * 0.01;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', function(){
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+</script>
+
+</body>
+</html>
