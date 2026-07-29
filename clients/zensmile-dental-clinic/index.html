@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZenSmile Dental Clinic | Dental Care in Colaba, Mumbai</title>
+<meta name="description" content="ZenSmile Dental Clinic — calm, modern dental care in Colaba, Mumbai, rated 5.0 by 696+ patients.">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal:#4fb3a9;
+    --mint:#bfe8e2;
+    --white:#f5fbfa;
+    --deep:#081615;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Inter',sans-serif;background:var(--deep);color:var(--white);overflow-x:hidden;}
+  h1,h2,h3{font-family:'Poppins',sans-serif;}
+  canvas#bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;}
+
+  nav{position:fixed;top:0;left:0;width:100%;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:1.5rem 6%;background:linear-gradient(to bottom, rgba(8,22,21,0.9), transparent);}
+  .logo{font-family:'Poppins',sans-serif;font-size:1.4rem;font-weight:700;letter-spacing:0.02em;color:var(--teal);}
+  .nav-cta{padding:0.6rem 1.4rem;border:1px solid var(--teal);border-radius:2px;color:var(--mint);text-decoration:none;font-size:0.85rem;letter-spacing:0.06em;text-transform:uppercase;transition:all .3s;}
+  .nav-cta:hover{background:var(--teal);color:var(--deep);}
+
+  .hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;}
+  .hero .eyebrow{color:var(--mint);letter-spacing:0.25em;text-transform:uppercase;font-size:0.8rem;margin-bottom:1.2rem;}
+  .hero h1{font-size:clamp(2.2rem,6vw,4.4rem);font-weight:700;line-height:1.15;max-width:900px;background:linear-gradient(135deg,#fff,var(--teal) 60%,var(--mint));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .hero p.sub{margin-top:1.5rem;font-size:1.1rem;color:#c3ddd8;max-width:560px;font-weight:300;}
+  .hero .rating{margin-top:1.2rem;font-size:0.9rem;color:var(--teal);letter-spacing:0.05em;}
+  .cta-row{margin-top:2.5rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+  .btn-primary,.btn-secondary{padding:0.9rem 2.2rem;border-radius:2px;font-size:0.9rem;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;transition:all .3s;}
+  .btn-primary{background:var(--teal);color:var(--deep);font-weight:600;}
+  .btn-primary:hover{background:#6cc3ba;transform:translateY(-2px);}
+  .btn-secondary{border:1px solid rgba(245,251,250,0.4);color:var(--white);}
+  .btn-secondary:hover{border-color:var(--teal);color:var(--teal);}
+
+  section{position:relative;z-index:1;padding:6rem 6%;}
+  .section-head{text-align:center;max-width:700px;margin:0 auto 3.5rem;}
+  .section-head .eyebrow{color:var(--teal);letter-spacing:0.25em;text-transform:uppercase;font-size:0.78rem;margin-bottom:0.8rem;display:block;}
+  .section-head h2{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:600;}
+
+  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2rem;max-width:1100px;margin:0 auto;}
+  .feature{background:rgba(245,251,250,0.04);border:1px solid rgba(79,179,169,0.3);border-radius:6px;padding:2.5rem 2rem;backdrop-filter:blur(6px);transition:transform .3s, border-color .3s;}
+  .feature:hover{transform:translateY(-6px);border-color:var(--teal);}
+  .feature .icon{font-size:1.8rem;margin-bottom:1.2rem;}
+  .feature h3{font-size:1.2rem;margin-bottom:0.8rem;color:var(--white);}
+  .feature p{font-size:0.92rem;color:#a0c2bc;line-height:1.6;font-weight:300;}
+
+  .testimonials{background:rgba(245,251,250,0.03);}
+  .quote{max-width:700px;margin:0 auto;text-align:center;}
+  .quote p{font-size:1.3rem;font-family:'Poppins',sans-serif;font-style:italic;color:#e3f4f1;line-height:1.6;}
+  .quote .who{margin-top:1.5rem;color:var(--teal);font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;}
+
+  .final-cta{text-align:center;background:linear-gradient(135deg, rgba(79,179,169,0.15), rgba(191,232,226,0.06));border-top:1px solid rgba(79,179,169,0.25);border-bottom:1px solid rgba(79,179,169,0.25);}
+  .final-cta h2{font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:1rem;}
+  .final-cta p{color:#c3ddd8;font-weight:300;max-width:500px;margin:0 auto 2rem;}
+
+  footer{position:relative;z-index:1;text-align:center;padding:2.5rem 6%;color:#6b8783;font-size:0.82rem;border-top:1px solid rgba(79,179,169,0.2);}
+  footer a{color:var(--teal);text-decoration:none;}
+
+  @media (max-width:600px){
+    nav{padding:1.2rem 5%;}
+    .logo{font-size:1.15rem;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<nav>
+  <div class="logo">ZenSmile Dental</div>
+  <a class="nav-cta" href="https://wa.me/918208510630?text=Hi%20ZenSmile%20Dental%20Clinic%2C%20I%27d%20like%20to%20book%20an%20appointment." target="_blank" rel="noopener">Book Now</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Dental Care &middot; Colaba, Mumbai</div>
+  <h1>Calm Care for a<br>Confident Smile</h1>
+  <p class="sub">ZenSmile Dental Clinic brings a relaxed, modern approach to dentistry in the heart of Colaba &mdash; because a visit to the dentist shouldn't feel stressful.</p>
+  <div class="rating">&#9733; 5.0 &nbsp;&middot;&nbsp; Trusted by 696+ Patients</div>
+  <div class="cta-row">
+    <a class="btn-primary" href="https://wa.me/918208510630?text=Hi%20ZenSmile%20Dental%20Clinic%2C%20I%27d%20like%20to%20book%20an%20appointment." target="_blank" rel="noopener">Book Your Appointment</a>
+    <a class="btn-secondary" href="#features">Explore Services</a>
+  </div>
+</section>
+
+<section id="features">
+  <div class="section-head">
+    <span class="eyebrow">What We Do</span>
+    <h2>Modern Dentistry, Zen Experience</h2>
+  </div>
+  <div class="features">
+    <div class="feature">
+      <div class="icon">&#127880;</div>
+      <h3>Calm, Anxiety-Free Visits</h3>
+      <p>A soothing clinic environment designed to put nervous patients at ease from the moment they walk in.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#129688;</div>
+      <h3>Preventive &amp; Cosmetic Dentistry</h3>
+      <p>Cleanings, whitening, and smile makeovers &mdash; delivered with precision and a gentle touch.</p>
+    </div>
+    <div class="feature">
+      <div class="icon">&#127775;</div>
+      <h3>5.0-Star Patient Trust</h3>
+      <p>A perfect rating across 696+ reviews &mdash; consistency you can count on.</p>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials">
+  <div class="quote">
+    <p>"I used to dread dental visits. ZenSmile completely changed that &mdash; calm, painless, and genuinely caring."</p>
+    <div class="who">A Recent Patient</div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <h2>Book Your Visit Today</h2>
+  <p>Experience dentistry the way it should feel &mdash; calm, gentle, and genuinely reassuring.</p>
+  <a class="btn-primary" href="https://wa.me/918208510630?text=Hi%20ZenSmile%20Dental%20Clinic%2C%20I%27d%20like%20to%20book%20an%20appointment." target="_blank" rel="noopener">Chat With Us on WhatsApp</a>
+</section>
+
+<footer>
+  &copy; 2026 ZenSmile Dental Clinic &middot; Dental Care &middot; Colaba, Mumbai
+  <br>Prototype crafted by Nexus 3D Web Studio
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  var canvas = document.getElementById('bg');
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+  camera.position.z = 16;
+
+  var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  var PARTICLE_COUNT = 1400;
+  var geometry = new THREE.BufferGeometry();
+  var positions = new Float32Array(PARTICLE_COUNT * 3);
+  var speeds = new Float32Array(PARTICLE_COUNT);
+
+  for (var i = 0; i < PARTICLE_COUNT; i++) {
+    positions[i*3]     = (Math.random() - 0.5) * 40;
+    positions[i*3 + 1] = (Math.random() - 0.5) * 24;
+    positions[i*3 + 2] = (Math.random() - 0.5) * 30 - 5;
+    speeds[i] = 0.05 + Math.random() * 0.15;
+  }
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  var material = new THREE.PointsMaterial({
+    color: 0x4fb3a9,
+    size: 0.12,
+    transparent: true,
+    opacity: 0.75,
+    sizeAttenuation: true
+  });
+
+  var particles = new THREE.Points(geometry, material);
+  scene.add(particles);
+
+  var whiteGeo = new THREE.BufferGeometry();
+  var WHITE_COUNT = 500;
+  var whitePositions = new Float32Array(WHITE_COUNT * 3);
+  for (var j = 0; j < WHITE_COUNT; j++) {
+    whitePositions[j*3]     = (Math.random() - 0.5) * 40;
+    whitePositions[j*3 + 1] = (Math.random() - 0.5) * 24;
+    whitePositions[j*3 + 2] = (Math.random() - 0.5) * 30 - 5;
+  }
+  whiteGeo.setAttribute('position', new THREE.BufferAttribute(whitePositions, 3));
+  var whiteMat = new THREE.PointsMaterial({
+    color: 0xbfe8e2,
+    size: 0.08,
+    transparent: true,
+    opacity: 0.5
+  });
+  var whiteParticles = new THREE.Points(whiteGeo, whiteMat);
+  scene.add(whiteParticles);
+
+  var ambient = new THREE.AmbientLight(0xffffff, 0.3);
+  scene.add(ambient);
+
+  var clock = new THREE.Clock();
+  var posAttr = geometry.attributes.position;
+
+  function animate(){
+    requestAnimationFrame(animate);
+    var t = clock.getElapsedTime();
+    for (var i = 0; i < PARTICLE_COUNT; i++) {
+      posAttr.array[i*3 + 1] += Math.sin(t * speeds[i] + i) * 0.003;
+    }
+    posAttr.needsUpdate = true;
+    particles.rotation.y = t * 0.012;
+    whiteParticles.rotation.y = -t * 0.008;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', function(){
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+</script>
+
+</body>
+</html>
