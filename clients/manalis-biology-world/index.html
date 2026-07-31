@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manali's Biology World | NEET, IGCSE, IBDP, ICSE & CBSE Biology</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; background:#050914; overflow-x:hidden; font-family:'Segoe UI', system-ui, sans-serif; color:#eaf0ff; }
+  #bg-canvas { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; }
+
+  nav {
+    position:fixed; top:0; left:0; width:100%; z-index:10;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 6%; background:linear-gradient(180deg, rgba(5,9,20,0.85), transparent);
+  }
+  .logo { font-size:1.2rem; font-weight:700; letter-spacing:0.5px; color:#8fd3ff; }
+  .logo span { color:#eaf0ff; font-weight:300; }
+  nav a.nav-cta {
+    background:#2ea3ff; color:#04101f; padding:10px 18px; border-radius:30px;
+    font-weight:600; font-size:0.85rem; text-decoration:none; white-space:nowrap;
+  }
+
+  .hero {
+    position:relative; z-index:1; height:100vh; display:flex; flex-direction:column;
+    justify-content:center; align-items:center; text-align:center; padding:0 6%;
+  }
+  .hero h1 {
+    font-size:clamp(2rem, 6vw, 3.6rem); font-weight:800; line-height:1.15;
+    background:linear-gradient(90deg, #8fd3ff, #eaf0ff, #b39dff);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    max-width:820px;
+  }
+  .hero p {
+    margin-top:18px; font-size:clamp(1rem, 2vw, 1.25rem); color:#b9c6e6; max-width:600px;
+  }
+  .hero .badges {
+    margin-top:22px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
+  }
+  .hero .badges span {
+    border:1px solid rgba(143,211,255,0.4); padding:6px 14px; border-radius:20px;
+    font-size:0.8rem; color:#8fd3ff; letter-spacing:0.5px;
+  }
+  .hero .cta-group { margin-top:34px; display:flex; gap:16px; flex-wrap:wrap; justify-content:center; }
+  .btn-primary {
+    background:#2ea3ff; color:#04101f; padding:15px 32px; border-radius:30px;
+    font-weight:700; text-decoration:none; font-size:1rem; box-shadow:0 0 30px rgba(46,163,255,0.4);
+  }
+  .btn-secondary {
+    border:1px solid rgba(234,240,255,0.3); color:#eaf0ff; padding:15px 32px; border-radius:30px;
+    font-weight:600; text-decoration:none; font-size:1rem;
+  }
+
+  section { position:relative; z-index:1; padding:90px 6%; }
+  .section-title { text-align:center; font-size:clamp(1.5rem,3.5vw,2.2rem); font-weight:700; margin-bottom:14px; }
+  .section-sub { text-align:center; color:#8fa0c9; max-width:560px; margin:0 auto 50px; font-size:1rem; }
+
+  .features { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:28px; max-width:1100px; margin:0 auto; }
+  .feature-card {
+    background:rgba(255,255,255,0.03); border:1px solid rgba(143,211,255,0.15);
+    border-radius:16px; padding:32px 26px; backdrop-filter:blur(6px);
+  }
+  .feature-card .icon { font-size:1.8rem; margin-bottom:14px; }
+  .feature-card h3 { font-size:1.1rem; margin-bottom:10px; color:#eaf0ff; }
+  .feature-card p { color:#9fb0d1; font-size:0.92rem; line-height:1.55; }
+
+  .testimonials { max-width:800px; margin:0 auto; text-align:center; }
+  .testimonial-card {
+    background:rgba(255,255,255,0.03); border:1px solid rgba(143,211,255,0.15);
+    border-radius:16px; padding:36px; font-style:italic; color:#c7d3f0; font-size:1.05rem; line-height:1.6;
+  }
+  .testimonial-card .author { margin-top:18px; font-style:normal; font-weight:600; color:#8fd3ff; font-size:0.9rem; }
+
+  .cta-section { text-align:center; padding-bottom:120px; }
+  .cta-box {
+    max-width:640px; margin:0 auto; background:linear-gradient(135deg, rgba(46,163,255,0.12), rgba(179,157,255,0.08));
+    border:1px solid rgba(143,211,255,0.25); border-radius:24px; padding:50px 36px;
+  }
+  .cta-box h2 { font-size:clamp(1.4rem,3vw,2rem); margin-bottom:14px; }
+  .cta-box p { color:#b9c6e6; margin-bottom:28px; }
+
+  footer {
+    position:relative; z-index:1; text-align:center; padding:30px 6%; color:#5c6c93;
+    font-size:0.82rem; border-top:1px solid rgba(255,255,255,0.05);
+  }
+
+  @media (max-width:600px) {
+    nav { padding:14px 5%; }
+    .logo { font-size:1rem; }
+    nav a.nav-cta { padding:8px 14px; font-size:0.78rem; }
+    section { padding:60px 5%; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+  <div class="logo">Manali's <span>Biology World</span></div>
+  <a class="nav-cta" href="https://wa.me/917715893198?text=Hi%20Manali's%20Biology%20World%2C%20I'd%20like%20to%20know%20more%20about%20your%20Biology%20classes" target="_blank">Book Free Demo</a>
+</nav>
+
+<section class="hero">
+  <h1>Where Every Concept in Biology Finally Clicks</h1>
+  <p>Expert NEET, IGCSE, IBDP, ICSE & CBSE Biology coaching in Mazgaon, Mumbai — built to turn confusion into clarity, one lesson at a time.</p>
+  <div class="badges">
+    <span>NEET</span><span>IGCSE</span><span>IBDP</span><span>ICSE</span><span>CBSE</span>
+  </div>
+  <div class="cta-group">
+    <a class="btn-primary" href="https://wa.me/917715893198?text=Hi%20Manali's%20Biology%20World%2C%20I'd%20like%20to%20book%20a%20free%20demo%20class" target="_blank">Book a Free Demo Class</a>
+    <a class="btn-secondary" href="#programs">Explore Programs</a>
+  </div>
+</section>
+
+<section id="programs">
+  <h2 class="section-title">Built Around Every Board You Study</h2>
+  <p class="section-sub">Whichever curriculum you follow, Manali's Biology World maps every class to your exact syllabus and exam pattern.</p>
+  <div class="features">
+    <div class="feature-card">
+      <div class="icon">🧬</div>
+      <h3>NEET Biology Mastery</h3>
+      <p>Concept-first teaching mapped to NCERT and NEET question patterns, with regular topic-wise tests to track your rank potential.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🔬</div>
+      <h3>IGCSE & IBDP Track</h3>
+      <p>International-standard Biology instruction aligned to Cambridge and IB assessment objectives — built for board and internal exams alike.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📘</div>
+      <h3>ICSE & CBSE Foundations</h3>
+      <p>Strong fundamentals from Class 9 onward, so Biology never feels like memorisation again — it becomes a subject you actually enjoy.</p>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials">
+  <h2 class="section-title">Trusted by Students Across Mumbai</h2>
+  <div class="testimonial-card">
+    "Biology finally makes sense — every diagram, every mechanism, explained until it clicks."
+    <div class="author">— A NEET Aspirant, Mumbai</div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="cta-box">
+    <h2>Your Next Batch Starts Soon</h2>
+    <p>Limited seats per batch to ensure every student gets personal attention. Reserve your spot on WhatsApp today.</p>
+    <a class="btn-primary" href="https://wa.me/917715893198?text=Hi%20Manali's%20Biology%20World%2C%20I'd%20like%20to%20reserve%20a%20seat%20in%20the%20next%20batch" target="_blank">Reserve My Seat on WhatsApp</a>
+  </div>
+</section>
+
+<footer>
+  Manali's Biology World · Honeycomb, 17/6, Dr Mascarenhas Rd, Mazgaon, Mumbai 400010 · 077158 93198
+  <br>Digital experience by Nexus 3D Web Studio
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  const canvas = document.getElementById('bg-canvas');
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(65, window.innerWidth/window.innerHeight, 0.1, 1000);
+  camera.position.z = 60;
+
+  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias:true, alpha:true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  // Constellation Network: points + connecting lines, deep blue starfield
+  const NODE_COUNT = 180;
+  const positions = new Float32Array(NODE_COUNT * 3);
+  const nodePositions = [];
+
+  for (let i = 0; i < NODE_COUNT; i++) {
+    const x = (Math.random() - 0.5) * 140;
+    const y = (Math.random() - 0.5) * 90;
+    const z = (Math.random() - 0.5) * 100 - 20;
+    positions[i*3] = x;
+    positions[i*3+1] = y;
+    positions[i*3+2] = z;
+    nodePositions.push(new THREE.Vector3(x, y, z));
+  }
+
+  const pointsGeo = new THREE.BufferGeometry();
+  pointsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const pointsMat = new THREE.PointsMaterial({
+    color: 0x8fd3ff,
+    size: 1.3,
+    transparent: true,
+    opacity: 0.85
+  });
+  const pointCloud = new THREE.Points(pointsGeo, pointsMat);
+  scene.add(pointCloud);
+
+  // Connect nearby nodes with faint lines to form a constellation
+  const lineVertices = [];
+  const MAX_DIST = 18;
+  for (let i = 0; i < NODE_COUNT; i++) {
+    let connections = 0;
+    for (let j = i + 1; j < NODE_COUNT; j++) {
+      if (connections >= 3) break;
+      const dist = nodePositions[i].distanceTo(nodePositions[j]);
+      if (dist < MAX_DIST) {
+        lineVertices.push(nodePositions[i].x, nodePositions[i].y, nodePositions[i].z);
+        lineVertices.push(nodePositions[j].x, nodePositions[j].y, nodePositions[j].z);
+        connections++;
+      }
+    }
+  }
+  const lineGeo = new THREE.BufferGeometry();
+  lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(lineVertices), 3));
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x3b5b8f, transparent:true, opacity:0.35 });
+  const lineSegments = new THREE.LineSegments(lineGeo, lineMat);
+  scene.add(lineSegments);
+
+  // Background starfield
+  const starCount = 400;
+  const starPositions = new Float32Array(starCount * 3);
+  for (let i = 0; i < starCount; i++) {
+    starPositions[i*3] = (Math.random()-0.5) * 300;
+    starPositions[i*3+1] = (Math.random()-0.5) * 300;
+    starPositions[i*3+2] = (Math.random()-0.5) * 300 - 100;
+  }
+  const starGeo = new THREE.BufferGeometry();
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+  const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.6, transparent:true, opacity:0.5 });
+  const stars = new THREE.Points(starGeo, starMat);
+  scene.add(stars);
+
+  let mouseX = 0, mouseY = 0;
+  window.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    pointCloud.rotation.y += 0.0009;
+    lineSegments.rotation.y += 0.0009;
+    pointCloud.rotation.x += 0.0002;
+    lineSegments.rotation.x += 0.0002;
+    stars.rotation.y += 0.0002;
+
+    camera.position.x += (mouseX * 6 - camera.position.x) * 0.02;
+    camera.position.y += (-mouseY * 4 - camera.position.y) * 0.02;
+    camera.lookAt(scene.position);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+</script>
+
+</body>
+</html>
